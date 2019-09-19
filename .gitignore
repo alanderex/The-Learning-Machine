@@ -1,5 +1,8 @@
 # fer2013 dataset uncompressed
 fer2013/fer2013
 
+# generated faces
+face_recognition/test_images/faces
+
 # ipynb checkpoint
 */.ipynb_checkpoints/*
