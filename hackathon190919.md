@@ -19,7 +19,7 @@
 1. Set of geotagged location Tweet (Al)
 2. Frontend design for Learning Machine 
 3. Database of faces to classify 
-    - FER Kaggle ([link](./fer2013))
+    - FER Kaggle ([link](./fer2013)) - [Dataset Page](https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data)
 4. Set of words to classify
     - use Dodds and Danforth, 2011 ([link](http://doi.org/10.1371/journal.pone.0026752))
 5. M model for Learning Machine and database
