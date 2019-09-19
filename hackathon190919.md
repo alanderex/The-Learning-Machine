@@ -31,7 +31,7 @@
 * There are three standard ways of acquiring: **twurl** in a shell, or **tweepy** or **twython** under python.
 * The [Twitter docs](https://developer.twitter.com/en/docs/geo/places-near-location/api-reference/get-geo-search.html) talking about geolocations focuses on json objects which can become attributes of a tweet, rather than tweets themselves, so are a bit of a red herring.
 * Docs referring to using twurl suggest that a search like this one should return geotagged tweets `twurl GET -H api.twitter.com "/1.1/search/tweets.json?q=geocode=52.25,-2.35,50km" | jq` , but this kind of search does not work any more. You get an empty json back.
-* Twitter's [own example search queries](https://developer.twitter.com/en/docs/tweets/search/guides/standard-operators.html) are now out of date - searching for geocode using their example results in twitter thinking you are searching for the word "geocode" :/ :/ :/ !!!
+* Twitter's [own example search queries](https://developer.twitter.com/en/docs/tweets/search/guides/standard-operators.html) are now out of date.
 * Tested - tweeting with geotagging active, then harvesting that tweet, results in a tweet with empty geotag fields.
 
 * Alternatives:
