@@ -34,7 +34,7 @@
 * Twitter's [own example search queries](https://developer.twitter.com/en/docs/tweets/search/guides/standard-operators.html) have a typo in; there should be a ":" after "geocode", not "=" .
 * Tested - tweeting with geotagging active, then harvesting that tweet, results in a tweet with empty geotag fields.
 * This is weird though: if you go to a twitter geolocation website, they are still working. You can select a tweet that is recent and has geotags. Then harvest it, and it does indeed still have geotags. You can even indirectly get the same tweet by harvesting by location, and you get that tweet back. Very confusing. Perhaps they are phasing out and Bristol is already phased out? But why does geotag seach return results, without it knowing their location? For example, compare\
-`twurl GET -H api.twitter.com "/1.1/search/tweets.json?q=geocode:51.27,-2.35,30km" | jq | grep coordinates`\
+`twurl GET -H api.twitter.com "/1.1/search/tweets.json?q=geocode:51.27,-2.35,30km" | jq | grep -A2 coordinates`\
 (tweets from 30km around Bristol, you get results, but coords are null)\
 with this (random) person who geotags\
 `twurl GET -H api.twitter.com "/1.1/search/tweets.json?q=from:JennyPimentel" | jq | grep -A2 coordinates`\
