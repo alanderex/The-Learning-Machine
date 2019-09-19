@@ -22,4 +22,4 @@ improve human health? Or, to put it another way, can we teach computers to under
 
 ## Activity Log and Meetups
 
-[Full-day Hackathon](./hackathon190919.md)
+[Hackathon 19.09.2019](./hackathon190919.md)
