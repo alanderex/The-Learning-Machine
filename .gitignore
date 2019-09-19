@@ -1,5 +1,5 @@
 # fer2013 dataset uncompressed
-./fer2013/fer2013
+fer2013/fer2013
 
 # ipynb checkpoint
-.ipynb_checkpoints/*
+*/.ipynb_checkpoints/*
