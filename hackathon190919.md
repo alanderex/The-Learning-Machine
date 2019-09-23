@@ -44,4 +44,8 @@ and the coordinate subfields are there... weird.
   * Using historical geotagged tweets instead.
   * Making a list of well-visited and tweeted-about Bristol locations, assigning coordinates manually, then appending coords back onto tweets mentioning those locations.
   * Another activity, I thought an idea would be to pool Bristol or south-west tweets and have a history slider to see if patterns emerge in emotional content of those messages, on fine-grained hourly scales, or long-term say yearly scales.
-  
+
+### Future meet goals (aside from get things done!)
+
+* Valerio and Al will think about workflows to upskill everyone; we realise it's a priority to use this project to teach, involve, and increase confidence in plenty of areas :)
+
