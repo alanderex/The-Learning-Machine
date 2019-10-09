@@ -39,6 +39,7 @@
 with this (random) person who geotags\
 `twurl GET -H api.twitter.com "/1.1/search/tweets.json?q=from:JennyPimentel" | jq | grep -A2 coordinates`\
 and the coordinate subfields are there... weird.
+* Going to https://www.omnisci.com/demos/tweetmap/ to try to find geotagged tweets only provides historical tweets, the most recent in Bristol being from the end of September. Going to a person who geotags, and looking through their tweets as jsons, geotagging stops around 25th of September / varies. Harvest their latest tweets, coordinate fields are empty.
 
 * Alternatives:
   * Using historical geotagged tweets instead.
