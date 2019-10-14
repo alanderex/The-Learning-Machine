@@ -2,7 +2,7 @@
 
 ## Meeting 14/10/19
 
-**Projects**: 
+**Projects**
 1. Learning Machine
 * Prototype interface
 * Backend needed to take data, process, feedback to frontend.
@@ -22,9 +22,13 @@
 * WTC will be closed for five months next year (when?)
 * Robotics week is in April
 
-## Ideas
+## To do / thoughts
+* Develop learning machine
+* Develop mood map / gather dataset for integration with mapping code.
+* Communicate with MS regarding emoji mirror.
 * Think of what needs to be communicated on signage, buth in final form and for hackathons.
 * Questions / how data is used / nature of machine learning etc. Controvertial questions? Privacy / social benefit?
 * Graphics to send through to WTC - to be ready for live hackathons?
-* Area for visitors to give feedback, draw, leave comments etc.
-* 
+* Think about area for visitors to give feedback, draw, leave comments etc.
+* Should the learning machine integrate with the emoji mirror, in guessing faces the user provides through video?
+
