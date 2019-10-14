@@ -7,8 +7,8 @@
 2 Emoji Mirror
 3 Mood Observatory
 
-
 ### Maca's comments
-Aim for a finished product by February
-WTC will be closed 
-Robotics week is in April
+* Aim for a finished product by February
+* WTC will be closed for five months
+* Robotics week is in April
+
