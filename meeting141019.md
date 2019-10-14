@@ -3,12 +3,20 @@
 ## Meeting 14/10/19
 
 **Projects**: 
-1 Learning Machine 
-2 Emoji Mirror
-3 Mood Observatory
+1. Learning Machine 
+2. Emoji Mirror
+3. Mood Observatory
 
 ### Maca's comments
 * Aim for a finished product by February
 * WTC will be closed for five months
 * Robotics week is in April
 
+Do we need a poster making up to say what we are doing?
+
+## Ideas
+* Think of what needs to be communicated on signage
+* Questions / how data is used / nature of machine learning etc.
+* Graphics to send through to WTC.
+* Area for visitors to give feedback, draw, leave comments etc.
+* 
