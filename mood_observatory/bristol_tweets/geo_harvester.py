@@ -2,6 +2,7 @@ import tweepy
 import json
 from pymongo import MongoClient
 
+import credentials
 
 class StreamListener(tweepy.StreamListener):
 
@@ -13,7 +14,7 @@ class StreamListener(tweepy.StreamListener):
 
         """Lets you know the connection was successful"""
 
-        print("You're connected to the streaming server.")
+        print("Connected to the streaming server.")
 
     def on_error(self, status_code):
 
@@ -24,37 +25,29 @@ class StreamListener(tweepy.StreamListener):
 
     def on_data(self, data):
 
-        """Each time a new tweet is streamed in, it is stored in MongoDB"""
+        """Each new streamed tweet is stored in MongoDB"""
 
         client = MongoClient()
 
-        # Connect to or initiate a database called 'tweets'
-        db = client.tweets
+        # Connect to or initiate a database called 'geotweets'
+        db = client.geotweets
 
         # Deal with the incoming json
         datajson = json.loads(data)
 
         # Only store tweets in English;
-        # put into 'tweet_collection' of the 'tweets' database.
+        # put into 'geotweets_collection' of the 'geotweets' database.
         if "lang" in datajson and datajson["lang"] == "en":
-            db.tweet_collection.insert_one(datajson)
+            db.geotweets_collection.insert_one(datajson)
 
 
 if __name__ == "__main__":
 
-    # These are provided to you through the Twitter API after you create a account
-    consumer_key = ''
-    consumer_secret = ''
-    access_token = ''
-    access_token_secret = ''
-
-    auth1 = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth1.set_access_token(access_token, access_token_secret)
-
-    # boxes are the longitude, latitude coordinate corners for geoboxes
-    #The first two define the SW corner of the box and the second two define the NE corner of the box.
-    # THESE ARE NOT INTUITIVE AS LAT/LONG ARE REVERSED FROM CONVENTION :/ :( weird
+    # boxes are the longitude, latitude coordinate corners for a box that restricts the
+    # The first two define the SW corner, the second two define the NE corner.
+    # THESE ARE NOT INTUITIVE AS LAT/LONG ARE REVERSED FROM CONVENTION, weird :/ :(
     # examples:
+    #boxes = [-2.695672, 51.392892, -2.446455, 51.562357]        # Bristol
     #boxes = [-124.7771694, 24.520833, -66.947028, 49.384472,        # Contiguous US
     #             -164.639405, 58.806859, -144.152365, 71.76871,         # Alaska
     #             -160.161542, 18.776344, -154.641396, 22.878623,        # Hawaii
@@ -62,6 +55,9 @@ if __name__ == "__main__":
     #             -16.869498, 26.618414, 52.220250, 70.257538]           # Europe
 
     boxes = [-2.695672, 51.392892, -2.446455, 51.562357]        # Bristol
+
+    auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
+    auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
     stream_listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True))
-    stream = tweepy.Stream(auth=auth1, listener=stream_listener)
+    stream = tweepy.Stream(auth=auth, listener=stream_listener)
     stream.filter(locations=boxes)
