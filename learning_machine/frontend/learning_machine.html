@@ -120,39 +120,65 @@
         const link = svg.append("g")
           .attr("class", "links")
           .selectAll("line")
-          .data(links)
+          .data(links, d => d.id)
           .join("line")
           .attr("stroke-width", 0);
 
         const node = svg.append("g")
           .attr("class", "nodes")
           .selectAll("g")
-          .data(nodes)
-          .join("g")
-          .call(drag(simulation));
+          .data(nodes, d => d.id)
+          .join(
+            enter => {
+              let node = enter.append("g").call(drag(simulation));
+              node.append("circle")
+                .attr("r", 15)
+                .attr("fill", color);
+              node.append("image")
+                .attr("xlink:href", d => d.image)
+                .attr("height",d => {
+                  if (d.group === 1) {return 50}
+                  else {return 40}
+                })
+                .attr("width",d => {
+                  if (d.group === 1) {return 50}
+                  else {return 40}
+                })
+                .attr("x",d => {
+                  if (d.group === 1) {return -25}
+                  else {return -20}
+                })
+                .attr("y",d => {
+                  if (d.group === 1) {return -25}
+                  else {return -20}
+                });
+                return node;
+            }
+          )
 
-        const circles = node.append("circle")
-          .attr("r", 15)
-          .attr("fill", color);
 
-        const imgs = node.append("image")
-          .attr("xlink:href", d => d.image)
-          .attr("height",d => {
-            if (d.group === 1) {return 50}
-            else {return 40}
-          })
-          .attr("width",d => {
-            if (d.group === 1) {return 50}
-            else {return 40}
-          })
-          .attr("x",d => {
-            if (d.group === 1) {return -25}
-            else {return -20}
-          })
-          .attr("y",d => {
-            if (d.group === 1) {return -25}
-            else {return -20}
-          });
+        // const circles = node.append("circle")
+        //   .attr("r", 15)
+        //   .attr("fill", color);
+        //
+        // const imgs = node.append("image")
+        //   .attr("xlink:href", d => d.image)
+        //   .attr("height",d => {
+        //     if (d.group === 1) {return 50}
+        //     else {return 40}
+        //   })
+        //   .attr("width",d => {
+        //     if (d.group === 1) {return 50}
+        //     else {return 40}
+        //   })
+        //   .attr("x",d => {
+        //     if (d.group === 1) {return -25}
+        //     else {return -20}
+        //   })
+        //   .attr("y",d => {
+        //     if (d.group === 1) {return -25}
+        //     else {return -20}
+        //   });
 
         simulation
             .on("tick", ticked);
