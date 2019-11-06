@@ -2,14 +2,11 @@ import tweepy
 import json
 import sys
 import signal
-import subprocess
 import os
 from pymongo import MongoClient
 
-import mongo_ops
-import credentials
-import geo_boxes
-import env_config
+# local imports
+import mongo_ops, credentials, geo_boxes, env_config
 
 def signal_handler(sig, frame):
     print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
@@ -26,18 +23,18 @@ class StreamListener(tweepy.StreamListener):
 
         """Lets you know the connection was successful"""
 
-        print("Connected to the streaming server.")
+        print("Connected to the Twitter streaming server.")
 
     def on_error(self, status_code):
 
-        """Lets you know that something went wrong"""
+        """Report that something went wrong"""
 
         print('Error: ' + repr(status_code))
         return False
 
     def on_data(self, data):
 
-        """Each new streamed tweet is stored in MongoDB"""
+        """Put incoming tweets into DB"""
 
         client = MongoClient()
 
@@ -48,7 +45,6 @@ class StreamListener(tweepy.StreamListener):
         datajson = json.loads(data)
 
         # put into 'geotweets_collection' of the 'geotweets' database.
-        print("New tweet.")
         db.geotweets_collection.insert_one(datajson)
 
         # export the most recent tweet as csv so it can be sentiment analysed
@@ -57,26 +53,14 @@ class StreamListener(tweepy.StreamListener):
 
 if __name__ == "__main__":
 
-    ## Set up interrupt signal handling and environment paths
+    ## Set up interrupt signal handling
     signal.signal(signal.SIGINT, signal_handler)
+
+    ## Set up environment paths
     env = env_config.EnvironmentConfig()
 
-    ## check if MongoDB is present and correct
-    try:
-        mongod_executable_path = subprocess.check_output(['which', 'mongod']).decode('utf-8').strip()
-    except:
-        print(f"You don't seem to have MongoDB installed. Stopping.")
-        sys.exit()
-    try:
-        mongoexport_executable_path = subprocess.check_output(['which', 'mongoexport']).decode('utf-8').strip()
-    except:
-        print(f"Mongoexport seems missing... stopping.")
-        sys.exit()
-    try:
-        mongodump_executable_path = subprocess.check_output(['which', 'mongodump']).decode('utf-8').strip()
-    except:
-        print(f"Mongodump seems missing... stopping.")
-        sys.exit()
+    ## See if the Mongo environment looks right
+    mongod_executable_path, mongoexport_executable_path, mongodump_executable_path = mongo_ops.mongo_checks()
 
     ## Check or make directory structure
     if not os.path.exists(env.run_folder + '/db'):
@@ -86,7 +70,12 @@ if __name__ == "__main__":
         print(f"DB log folder seems absent, creating folder...")
         os.makedirs(env.run_folder + '/db_logs')
 
-    mongo_ops.start_mongo(mongod_executable_path, env.db_path, env.db_log_filename)
+    ## Spin up a MongoDB server
+    mongo_ops.start_mongo(mongod_executable_path,
+                          env.db_path,
+                          env.db_log_filename)
+
+    ## Start instance of stream listener
     auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
     auth.set_access_token(credentials.ACCESS_TOKEN, credentials.ACCESS_TOKEN_SECRET)
     stream_listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True))
