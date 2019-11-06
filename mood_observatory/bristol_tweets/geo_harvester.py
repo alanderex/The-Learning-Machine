@@ -1,3 +1,5 @@
+#  -*- coding: utf-8 -*-
+
 import tweepy
 import json
 import sys
@@ -6,14 +8,14 @@ import os
 from pymongo import MongoClient
 
 # local imports
-import mongo_ops, credentials, geo_boxes, env_config
+import mongo_ops, credentials, geo_boxes, env_config, liwc_w_geocoords
 
 
-def signal_handler(sig, frame):
-    
+def signal_handler(signal, frame):
+
     """Handle interrupts from ctrl-c, and other interrupt signals"""
-    
-    print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
+    if signal == 2:
+        print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
     mongo_ops.stop_mongo()
     sys.exit(0)
 
@@ -39,7 +41,7 @@ class StreamListener(tweepy.StreamListener):
 
     def on_data(self, data):
 
-        """Put incoming tweets into DB"""
+        """Put incoming tweets into DB, put out a csv and analyse sentiment"""
 
         client = MongoClient()
 
@@ -49,12 +51,17 @@ class StreamListener(tweepy.StreamListener):
         # Deal with the incoming json
         datajson = json.loads(data)
 
-        # put into 'geotweets_collection' of the 'geotweets' database.
+        # put raw tweet into 'geotweets_collection' of the 'geotweets' database.
         db.geotweets_collection.insert_one(datajson)
 
         # export the most recent tweet as csv so it can be sentiment analysed
         mongo_ops.export_latest_tweet(mongoexport_executable_path)
 
+        # turn most recent tweet into sentiment metrics
+        liwc_w_geocoords.liwc_analysis(env.latest_geotweet, category_names, parse)
+
+        # bring sentiment analysis back into 'geotweets_analysed' of 'geotweets' database
+        mongo_ops.import_analysed_tweet(mongoimport_executable_path, 'latest_geotweet.csvLIWC')
 
 if __name__ == "__main__":
 
@@ -64,8 +71,16 @@ if __name__ == "__main__":
     ## Set up environment paths
     env = env_config.EnvironmentConfig()
 
+    ## assign dictionary
+    if len(sys.argv) != 2:
+        print(f'Please assign your dictionary for sentiment analysis.')
+        print(f'eg: python geo_harvester.py LIWC.dic')
+        exit(0)
+    dictionary = sys.argv[1]
+    parse, category_names = liwc_w_geocoords.load_dictionary(dictionary)
+
     ## See if the Mongo environment looks right
-    mongod_executable_path, mongoexport_executable_path, mongodump_executable_path = mongo_ops.mongo_checks()
+    mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, mongoimport_executable_path = mongo_ops.mongo_checks()
 
     ## Check or make directory structure
     if not os.path.exists(env.run_folder + '/db'):
