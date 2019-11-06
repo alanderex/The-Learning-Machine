@@ -8,7 +8,6 @@ from collections import Counter
 from datetime import datetime
 
 
-# Set up the dataframe by importing tweet.csv and setting up columns
 def set_up_dataframe(csv_file, category_names):
     '''build a dataframe with a tweet for each row, append word count and categories'''
     # the read_csv engine must be python, not default of c, or some lines will mess with it
@@ -39,27 +38,14 @@ def count_and_insert(df, parse_fn):
         index += 1
 
 
-if __name__ == '__main__':
-
-    # check that inputs exist.
-    if len(sys.argv) != 3:
-        print(f'Please assign your dictionary and file to analyse.')
-        print(f'eg: python3 main.py LIWC.dic some.txt')
-        exit(0)
-    if not os.path.isfile(sys.argv[1]):
-        print(f"The dictionary", sys.argv[1], "doesn't seem to exist here.")
-        exit(0)
-    if not os.path.isfile(sys.argv[2]):
-        print(f"The CSV file", sys.argv[2], "doesn't seem to exist here.")
-        exit(0)
+def load_dictionary(dictionary):
+    parse, category_names = liwc.load_token_parser(dictionary)
+    return parse, category_names
 
 
-    # bring the dictionary in, sys.argv[1] is the dictionary name
-    parse, category_names = liwc.load_token_parser(sys.argv[1])
-    df = set_up_dataframe(csv_file=sys.argv[2], category_names=category_names)
+def liwc_analysis(csv_file, category_names, parse):
+    df = set_up_dataframe(csv_file=csv_file, category_names=category_names)
     count_and_insert(df, parse_fn=parse)
-#    df_anonymised = df.drop(['id_str', 'text'], axis=1)
     df_anonymised = df.drop(['text'], axis=1)
-    df_anonymised.to_csv('LIWC_' + sys.argv[2], sep=',', encoding='utf-8')
-    #print(df_anonymised)
+    df_anonymised.to_csv(csv_file + 'LIWC', sep=',', encoding='utf-8')
 
