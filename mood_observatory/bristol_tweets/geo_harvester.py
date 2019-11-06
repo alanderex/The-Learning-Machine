@@ -8,10 +8,15 @@ from pymongo import MongoClient
 # local imports
 import mongo_ops, credentials, geo_boxes, env_config
 
+
 def signal_handler(sig, frame):
+    
+    """Handle interrupts from ctrl-c, and other interrupt signals"""
+    
     print(f"\n\nCtrl-c, ok got it, just a second while I try to exit gracefully...")
     mongo_ops.stop_mongo()
     sys.exit(0)
+
 
 class StreamListener(tweepy.StreamListener):
 
@@ -81,3 +86,4 @@ if __name__ == "__main__":
     stream_listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True))
     stream = tweepy.Stream(auth=auth, listener=stream_listener)
     stream.filter(locations=geo_boxes.boxes)
+
