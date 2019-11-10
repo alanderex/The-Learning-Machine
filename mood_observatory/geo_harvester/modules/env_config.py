@@ -1,14 +1,14 @@
 import os
-import sys
 from datetime import datetime
 
 
-DEFAULT_RUN_FOLDER = '/root/host_interface/'
+DEFAULT_RUN_FOLDER = '/root/host_interface/'  # the docker volume folder
 
 
 class EnvironmentConfig:
 
-    """ """
+    """Have a look at the environment and set up paths to relevant locations.
+    In particular, discerns if run is in docker container."""
 
     def __init__(self):
         if os.path.exists('./dockerenv'):
