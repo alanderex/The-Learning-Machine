@@ -8,7 +8,7 @@ import os
 from pymongo import MongoClient
 
 # local imports
-import mongo_ops, credentials, geo_boxes, env_config, liwc_w_geocoords
+from modules import mongo_ops, credentials, geo_boxes, env_config, liwc_w_geocoords
 
 
 def signal_handler(signal, frame):
@@ -28,7 +28,7 @@ class StreamListener(tweepy.StreamListener):
 
     def on_connect(self):
 
-        """Lets you know the connection was successful"""
+        """Report the connection was successful"""
 
         print("Connected to the Twitter streaming server.")
 
@@ -62,6 +62,7 @@ class StreamListener(tweepy.StreamListener):
 
         # bring sentiment analysis back into 'geotweets_analysed' of 'geotweets' database
         mongo_ops.import_analysed_tweet(mongoimport_executable_path, 'latest_geotweet.csvLIWC')
+
 
 if __name__ == "__main__":
 
