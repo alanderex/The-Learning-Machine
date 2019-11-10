@@ -1,7 +1,7 @@
+#  -*- coding: utf-8 -*-
+
 import pandas as pd
 from pandas import DataFrame
-import sys
-import os
 import liwc
 import re
 from collections import Counter
@@ -9,10 +9,15 @@ from datetime import datetime
 
 
 def set_up_dataframe(csv_file, category_names):
+
     '''build a dataframe with a tweet for each row, append word count and categories'''
+
     # the read_csv engine must be python, not default of c, or some lines will mess with it
     df = DataFrame(pd.read_csv(csv_file, encoding='utf-8', engine='python', error_bad_lines=False))
-    df['created_at'] = df['created_at'].apply(lambda d: datetime.strptime(d, '%a %b %d %H:%M:%S %z %Y').strftime('%H:%M_%d-%m-%Y'))
+    try:
+        df['created_at'] = df['created_at'].apply(lambda d: datetime.strptime(d, '%a %b %d %H:%M:%S %z %Y').strftime('%H:%M_%d-%m-%Y'))
+    except TypeError:
+        pass  # very rarely, this errors as strptime arg 1 being a float not a str ? odd.
     df['word_count'] = 0     # addend wc (consistent with official liwc format output)
     for category in category_names:
         df[category] = 0.0   # append the category columns
@@ -20,14 +25,18 @@ def set_up_dataframe(csv_file, category_names):
 
 
 def tokenize(text):
+
     '''split each text entry into words (tokens)'''
+
     # this needs to be tested or merged with Oliver's
     for match in re.finditer(r'\w+', text, re.UNICODE):
         yield match.group(0)
 
 
 def count_and_insert(df, parse_fn):
+
     '''assign each word to dictionary category and put in dataframe'''
+
     index = 0
     df['word_count'] = df['text'].apply(lambda x: len(str(x).split(' ')))
     for tweet in df['text']:
