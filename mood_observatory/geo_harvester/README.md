@@ -1,3 +1,4 @@
+## in development!!!! check back later
 
 <p align="center">
    <a href="https://github.com/DynamicGenetics/Epicosm"><img src="img/epicosmPNGsmall.png" width="300"></a> 
