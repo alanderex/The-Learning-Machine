@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData">
+    <serverData>
+      <paths name="iron-hide-local">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/valerio/Projects/we_the_curious" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/fer2013/fer2013" />
+            <excludedPath local="true" path="$PROJECT_DIR$/fer2013/.ipynb_checkpoints" />
+            <excludedPath local="true" path="$PROJECT_DIR$/fer2013/extracted_random_samples" />
+            <excludedPath local="true" path="$PROJECT_DIR$/fer2013/FER_random_samples_per_emotion.zip" />
+            <excludedPath local="true" path="$PROJECT_DIR$/face_recognition/test_images" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>
