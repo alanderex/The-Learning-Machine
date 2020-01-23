@@ -26,5 +26,5 @@
 
 ### Future meet goals (aside from get things done!)
 
-* Valerio and Al will think about workflows to upskill everyone; we realise it's a priority to use this project to teach, involve, and increase confidence in plenty of areas :)
+* (in process)
 
