@@ -2,7 +2,7 @@
 
 ## Hackathon 23/01/2020
 
-## NB: Deadlines for prototypes is 17th of February
+## NB :) Deadlines for prototypes is 17th of February
 
 **Projects**: 
 1 Learning Machine 
