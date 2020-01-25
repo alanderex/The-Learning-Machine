@@ -20,11 +20,13 @@
 
 * In a nutshell, current task is twitter > json > mongoo > csv > sentiment > conditonal emojis > html > client.
 * Probably use Flask API thingy - Al to do this.
+* We are going to have a meeting soon to get backend/frontend I/O up and running.
 
-### Will fill this out later to document the games ideas etc!! :)
+### Oliver's many faces
 
+* Oliver got his face to stick to the emojis rather than bouncing back to be with its brethren.
 
 ### Future meet goals (aside from get things done!)
 
-* (in process)
+* API meet to combine with code chat meetings.
 
