@@ -197,9 +197,9 @@
                 .attr("y",d => {
                   if (d.group === "target") {return -25}
                   else {return -34}
-                })
-                .attr("opacity", 0)
-              .call(enter => enter.transition(t)
+                });
+              thisNode.attr("opacity", 0)
+                .call(enter => enter.transition(t)
                 .attr("opacity", 1));
               return thisNode;
             },
