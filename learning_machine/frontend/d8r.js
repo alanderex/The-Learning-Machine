@@ -156,6 +156,9 @@ let d8r = (function(d3){
   }
 
   function compileData(nodeArray){
+    nodeArray.forEach(x => {
+      x.nodes[0].donut = x.links.map(y => y.value);
+    });
     let dataC = nodeArray.reduce(joinNodesReducer);
     dataC = {nodes: fixedNodes.nodes.concat(dataC.nodes), links: dataC.links};
     return dataC;

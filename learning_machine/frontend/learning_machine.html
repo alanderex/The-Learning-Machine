@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-    <title>Toy Complication</title>
+    <title>Learning Machine</title>
 
     <style>
       .link {
@@ -131,6 +131,10 @@
         .text("refresh")
         .attr("pointer-events", "none");
 
+      // Set up a colour palette for donut plots
+      let donutColor = d3.scaleOrdinal()
+        .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
       // *** End set up plotting area ***
 
       // Set up data
@@ -140,6 +144,8 @@
         data.nodes[i].fx = hex[i].x
         data.nodes[i].fy = hex[i].y
       }
+
+      console.log(nodesArray);
 
       console.log(data);
 
@@ -153,6 +159,35 @@
       let g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
       let link = g.append("g").selectAll(".link")
       let node = g.append("g").selectAll(".node")
+
+      // Arcs for donut charts
+      let arc = d3.arc().innerRadius(25).outerRadius(35);
+      let pie = d3.pie()
+        .value(function(d) {
+          return d;
+        })
+       .sort(null);
+
+      function donuts(d) {
+        let dataNode = d3.select(this);
+
+        console.log(dataNode);
+
+        console.log(pie(d.donut));
+
+        dataNode.selectAll(".arc")
+            .data(function(d){return pie(d.donut);})
+            .join(
+              enter => {
+                enter.append("path")
+                  .attr("class","arc")
+                  .attr("d", arc)
+                  .style("fill", d => donutColor(d.index));
+              },
+              update => update,
+              exit => exit.remove
+            );
+      }
 
       restart();
 
@@ -198,9 +233,14 @@
                   if (d.group === "target") {return -25}
                   else {return -34}
                 });
+              thisNode.filter(d => (d.group === "data"))
+                .each(donuts);
+              // thisNode.append("path")
+              //   .attr("d", )
               thisNode.attr("opacity", 0)
                 .call(enter => enter.transition(t)
                 .attr("opacity", 1));
+              // console.log(thisNode);
               return thisNode;
             },
             update => update,
