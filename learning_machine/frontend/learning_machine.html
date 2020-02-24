@@ -86,6 +86,12 @@
       const t = svg.transition()
        .duration(1000);
 
+      // Set up a colour palette for donut plots
+      // let donutColor = d3.scaleOrdinal()
+      //   .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+      let colours = ["#E4324F","#F19C38","#F6CA45","#5FCE43","#5BC7FA","#6559A6"];
+
       // Target circle radius
       let targetr = 55;
 
@@ -98,7 +104,9 @@
           .attr("fill", "#EEE")
           .attr("cx", hex[i].x)
           .attr("cy", hex[i].y)
-          .attr("id", d8r.fixedNodeIDs[i] + "_target");
+          .attr("id", d8r.fixedNodeIDs[i] + "_target")
+          .attr("stroke", colours[i])
+          .attr("stroke-width", 3);
       }
       // Label the target emojis
       for(let i = 0; i < 6; i++){
@@ -117,8 +125,8 @@
         .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
         .attr("id","refresh")
       .append("circle")
-        .attr("cx", hex[2].x + 2*targetr)
-        .attr("cy", hex[3].y)
+        .attr("cx", hex[1].x + 2*targetr)
+        .attr("cy", hex[2].y)
         .attr("fill", "#EEE")
         .attr("r", targetr);
 
@@ -126,14 +134,12 @@
         .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
         .attr("id", "refresh-label")
         .attr("text-anchor", "middle")
-        .attr("x", hex[2].x + 2*targetr)
-        .attr("y", hex[3].y + 5)
+        .attr("x", hex[1].x + 2*targetr)
+        .attr("y", hex[2].y + 5)
         .text("refresh")
         .attr("pointer-events", "none");
 
-      // Set up a colour palette for donut plots
-      let donutColor = d3.scaleOrdinal()
-        .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+      console.log(colours);
 
       // *** End set up plotting area ***
 
@@ -161,7 +167,7 @@
       let node = g.append("g").selectAll(".node")
 
       // Arcs for donut charts
-      let arc = d3.arc().innerRadius(25).outerRadius(35);
+      let arc = d3.arc().innerRadius(25).outerRadius(28);
       let pie = d3.pie()
         .value(function(d) {
           return d;
@@ -182,7 +188,8 @@
                 enter.append("path")
                   .attr("class","arc")
                   .attr("d", arc)
-                  .style("fill", d => donutColor(d.index));
+                  .style("fill", function(d,i){return colours[i]});
+                  // .style("fill", d => donutColor(d.index));
               },
               update => update,
               exit => exit.remove
@@ -190,6 +197,9 @@
       }
 
       restart();
+
+// 6 6559A6, 3 F6CA45, 5 5BC7FA, 1 E4324F, 2 F19C38, 4 5FCE43
+
 
       // What happens when the simulation ticks
       function ticked() {

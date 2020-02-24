@@ -191,14 +191,15 @@ let d8r = (function(d3){
     }
   }
 
+// Hexagon array rotated to accommodate donut charts
   function hexagonArray(cx, cy, gs){
     return [
-      {x: cx - gs, y: cy - (Math.sqrt(3)*gs)},
       {x: cx + gs, y: cy - (Math.sqrt(3)*gs)},
       {x: cx + 2 * gs, y: cy},
       {x: cx + gs, y: cy + (Math.sqrt(3)*gs)},
       {x: cx - gs, y: cy + (Math.sqrt(3)*gs)},
-      {x: cx - 2 * gs, y: cy}
+      {x: cx - 2 * gs, y: cy},
+      {x: cx - gs, y: cy - (Math.sqrt(3)*gs)}
     ]
   }
 
