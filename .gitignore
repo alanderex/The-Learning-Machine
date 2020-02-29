@@ -1,3 +1,6 @@
+# DS_Store folders on Mac machines
+*.DS_Store
+
 # fer2013 dataset uncompressed
 learning_machine/backend/data/fer2013/fer2013
 
