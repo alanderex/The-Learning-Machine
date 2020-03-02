@@ -22,3 +22,10 @@ the APIs is complemented by examples providing details on
 generated endpoints. 
 
 
+##### Technical Notes:
+
+To enable the support of `OpenAPI` syntax highlighting and auto-completion 
+there are a lot of plugins for the most common editors and IDE.
+
+More information on [OpenAPI Tools](https://openapi.tools/), and specifically on [Text Editors](https://openapi.tools/#text-editors). 
+For **JetBrains** IDE (e.g. PyCharm), I personally suggest using the [Swagger](https://plugins.jetbrains.com/plugin/8347-swagger) plugin - available for free in the Marketplace.
