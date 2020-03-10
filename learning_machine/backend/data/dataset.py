@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 from os import path as os_path
 import numpy as np
 from dataclasses import dataclass
+# KaggleDatasetMongoDB
 
 try:
     from transforms import Reshape, ToTorchTensor
@@ -25,7 +26,7 @@ class Sample:
     EMOTION_MAP = {0: 'Angry', 1: 'Disgust', 2: 'Fear', 3: 'Happy', 4: 'Sad', 5: 'Surprise', 6: 'Neutral'}
 
     pixels: str
-    set: str
+    ml_set: str
     emotion: int
     _array: np.ndarray = None
 
@@ -45,7 +46,7 @@ class Sample:
 
     def to_json(self):
         return {'image': self.pixels, 'emotion': int(self.emotion),
-                'emotion_label': self.emotion_label, 'set': self.set}
+                'emotion_label': self.emotion_label, 'set': self.ml_set}
 
     def __str__(self):
         s_json = self.to_json()
