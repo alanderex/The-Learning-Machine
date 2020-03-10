@@ -34,3 +34,10 @@ class ToTorchTensor:
                 image = image.transpose((2, 0, 1))
         sample.image = from_numpy(image)
         return sample
+
+
+class GrayScaleNormaliser:
+
+    def __call__(self, image: np.ndarray):
+        image /= 255
+        return image
