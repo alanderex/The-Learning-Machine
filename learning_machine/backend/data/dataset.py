@@ -48,6 +48,12 @@ class Sample:
         return {'image': self.pixels, 'emotion': int(self.emotion),
                 'emotion_label': self.emotion_label, 'set': self.ml_set}
 
+    @staticmethod
+    def from_json(mongo_json):
+        return Sample(pixels=mongo_json['image'],
+                      emotion=mongo_json['emotion'],
+                      ml_set=mongo_json['set'])
+
     def __str__(self):
         s_json = self.to_json()
         s_json['image'] = '... (len: {})'.format(len(self.pixels))
