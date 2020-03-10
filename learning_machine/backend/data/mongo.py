@@ -6,8 +6,14 @@ from pymongo.database import Database
 from pymongo.errors import ServerSelectionTimeoutError
 from torch.utils.data import Dataset
 
+try:
+    from .dataset import Sample
+except ImportError:
+    from dataset import Sample
+
 MLSet = Union[str, Tuple[str]]
 MongoFilter = Union[Dict[str, str],
+                    Dict[str, int],
                     Dict[str, Dict[str, Tuple[str]]]]
 
 
@@ -28,7 +34,7 @@ class MongoProxy:
         self._mongo_client = self._init_mongo_connection()
         self._db = self._set_database()
         self._collection = self._set_collection()
-        self._sample_oids = self._fetch_sample_ids()
+        self._sample_oids = self._retrieve_all_oids()
 
     @staticmethod
     def _generate_mongo_filter(ml_set: MLSet) -> MongoFilter:
@@ -52,7 +58,9 @@ class MongoProxy:
             return mongo_client
 
     def _set_database(self) -> Optional[Database]:
-        """"""
+        """Initialise the Database as set in the
+        provided `MongoDatabaseInfo`.
+        If no matching database is found, None is returned."""
         if self._mongo_client is None:
             return None
         db_name = self.db_info.db
@@ -61,7 +69,9 @@ class MongoProxy:
         return self._mongo_client[db_name]
 
     def _set_collection(self) -> Optional[Collection]:
-        """"""
+        """Initialise the Mongo Collection as set in the
+        provided `MongoDatabaseInfo`.
+        If no matching collection is found, None is returned."""
         if self._mongo_client is None or self._db is None:
             return None
         collection = self.db_info.collection
@@ -69,17 +79,28 @@ class MongoProxy:
             return None
         return self._db[collection]
 
-    def _fetch_sample_ids(self) -> Optional[Tuple[Any, ...]]:
-        """"""
+    def _retrieve_all_oids(self) -> Optional[Tuple[Any, ...]]:
+        """Retrieve all the ObjectIds of the sample in the Mongo Collection,
+        provided the selection filter on the ml_set(s).
+        If case of any error in connecting to the db or the collection, None
+        is returned.
+        """
         if all((self._mongo_client, self._db, self._collection)):
             # fetch all IDs of docs matching current filter
             ids_cursor = self._collection.find(self._ml_set_filter, {'_id': 1}).sort('_id')
             return tuple(obj_id['_id'] for obj_id in ids_cursor)
         return None
 
-    def count(self):
+    def count(self, query_filter: MongoFilter = None):
+        """Returns the total number of sample in the reference collection.
+        An additional query filter can be provided to refine the selection,
+        in addition to the default selection on the `ml_set`
+        """
         if all((self._mongo_client, self._db, self._collection)):
-            return self._collection.count_documents(self._ml_set_filter)
+            filter = self._ml_set_filter
+            if query_filter:
+                filter.update(query_filter)
+            return self._collection.count_documents(filter)
         return 0
 
     def fetch(self, index):
@@ -105,6 +126,18 @@ class KaggleMongoDataset(Dataset):
         return self._mongo_proxy.count()
 
     def __getitem__(self, index):
-        sample = self._mongo_proxy.fetch(index)
-        # PUT TRANSFORMERS HERE
+        db_entry = self._mongo_proxy.fetch(index)
+        sample = Sample.from_json(db_entry)
+        if self._transform:
+            sample.image = self._transform(sample.image)
         return sample
+
+    def class_weights(self) -> Dict[int, float]:
+        """"""
+        num_samples = self._mongo_proxy.count()
+        n_classes = len(Sample.EMOTION_MAP.keys())
+        class_weights = {}
+        for emotion in Sample.EMOTION_MAP:
+            y_count = self._mongo_proxy.count(query_filter={'emotion': emotion})
+            class_weights[emotion] = num_samples / (n_classes * y_count)
+        return class_weights
