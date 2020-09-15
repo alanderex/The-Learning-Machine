@@ -19,7 +19,7 @@ class StreamListener(tweepy.StreamListener):
 
         """Lets you know that something went wrong"""
 
-        print('Error: ' + repr(status_code))
+        print("Error: " + repr(status_code))
         return False
 
     def on_data(self, data):
@@ -43,25 +43,25 @@ class StreamListener(tweepy.StreamListener):
 if __name__ == "__main__":
 
     # These are provided to you through the Twitter API after you create a account
-    consumer_key = ''
-    consumer_secret = ''
-    access_token = ''
-    access_token_secret = ''
+    consumer_key = ""
+    consumer_secret = ""
+    access_token = ""
+    access_token_secret = ""
 
     auth1 = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth1.set_access_token(access_token, access_token_secret)
 
     # boxes are the longitude, latitude coordinate corners for geoboxes
-    #The first two define the SW corner of the box and the second two define the NE corner of the box.
+    # The first two define the SW corner of the box and the second two define the NE corner of the box.
     # THESE ARE NOT INTUITIVE AS LAT/LONG ARE REVERSED FROM CONVENTION :/ :( weird
     # examples:
-    #boxes = [-124.7771694, 24.520833, -66.947028, 49.384472,        # Contiguous US
+    # boxes = [-124.7771694, 24.520833, -66.947028, 49.384472,        # Contiguous US
     #             -164.639405, 58.806859, -144.152365, 71.76871,         # Alaska
     #             -160.161542, 18.776344, -154.641396, 22.878623,        # Hawaii
     #             -9.502491, 48.309957, 1.413503, 60.992262,             # UK + Ireland
     #             -16.869498, 26.618414, 52.220250, 70.257538]           # Europe
 
-    boxes = [-2.695672, 51.392892, -2.446455, 51.562357]        # Bristol
+    boxes = [-2.695672, 51.392892, -2.446455, 51.562357]  # Bristol
     stream_listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True))
     stream = tweepy.Stream(auth=auth1, listener=stream_listener)
     stream.filter(locations=boxes)

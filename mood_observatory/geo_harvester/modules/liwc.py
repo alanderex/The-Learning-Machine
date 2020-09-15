@@ -18,7 +18,7 @@ def read_dic(filepath):
         tsv = line.strip()
         if tsv:
             parts = tsv.split()
-            if parts[0] == '%':
+            if parts[0] == "%":
                 # start of categories
                 mode += 1
             elif mode == 1:
@@ -26,7 +26,9 @@ def read_dic(filepath):
                 category_mapping[parts[0]] = parts[1]
             elif mode == 2:
                 # dictionary entries
-                lexicon[parts[0]] = [category_mapping[category_id] for category_id in parts[1:]]
+                lexicon[parts[0]] = [
+                    category_mapping[category_id] for category_id in parts[1:]
+                ]
     return lexicon, category_names
 
 
@@ -43,13 +45,13 @@ def _build_trie(lexicon):
     for pattern, category_names in lexicon.items():
         cursor = trie
         for char in pattern:
-            if char == '*':
-                cursor['*'] = category_names
+            if char == "*":
+                cursor["*"] = category_names
                 break
             if char not in cursor:
                 cursor[char] = {}
             cursor = cursor[char]
-        cursor['$'] = category_names
+        cursor["$"] = category_names
     return trie
 
 
@@ -59,10 +61,10 @@ def _search_trie(trie, token, token_i=0):
     Search the given character-trie for paths that match the token string.
     """
 
-    if '*' in trie:
-        return trie['*']
-    elif '$' in trie and token_i == len(token):
-        return trie['$']
+    if "*" in trie:
+        return trie["*"]
+    elif "$" in trie and token_i == len(token):
+        return trie["$"]
     elif token_i < len(token):
         char = token[token_i]
         if char in trie:
@@ -83,7 +85,9 @@ def load_token_parser(filepath):
 
     lexicon, category_names = read_dic(filepath)
     trie = _build_trie(lexicon)
+
     def parse_token(token):
         for category_name in _search_trie(trie, token):
             yield category_name
+
     return parse_token, category_names
