@@ -1,29 +1,44 @@
 """
 Export Torch Dataset to interact with Face/Emotion data.
 """
-
 from pandas import read_csv as pd_read_csv
 from torch.utils.data import Dataset
-from torch import from_numpy
 from os import path as os_path
 import numpy as np
+from dataclasses import dataclass
 
-DATA_FOLDER = os_path.join(os_path.abspath(os_path.curdir), "data")
+# KaggleDatasetMongoDB
+
+try:
+    from transforms import Reshape, ToTorchTensor
+except ImportError:
+    from .transforms import Reshape, ToTorchTensor
+
+DATA_FOLDER = os_path.join(os_path.abspath(os_path.dirname(__file__)))
 
 
-# =============
-# Transformers
-# =============
+# =================
+# Sample Data Class
+# =================
 
 
-class Reshape:
-    """Reshape the Image (as ndarray and raveled) into a H x W x C image"""
+@dataclass
+class Sample:
+    EMOTION_MAP = {
+        0: "Angry",
+        1: "Disgust",
+        2: "Fear",
+        3: "Happy",
+        4: "Sad",
+        5: "Surprise",
+        6: "Neutral",
+    }
 
-    def __init__(self, shape):
-        if len(shape) == 2:
-            # add channel
-            shape = shape + (1,)
-        self._shape = shape
+    @property
+    def image(self):
+        if self._array is None:
+            self._array = np.fromstring(self.pixels, dtype=np.uint8, sep=" ")
+        return self._array
 
     def __call__(self, sample):
         imgage, emotion = sample["image"], sample["emotion"]
@@ -33,18 +48,29 @@ class Reshape:
         imgage = imgage.reshape(self._shape)
         return {"image": imgage, "emotion": emotion}
 
+    @image.setter
+    def image(self, new_image: np.ndarray):
+        self._array = new_image
 
-class ToTensor:
-    """Convert ndarrays in sample to Tensors."""
+    @property
+    def emotion_label(self):
+        return self.EMOTION_MAP[self.emotion]
 
-    def __call__(self, sample):
-        image, emotion = sample["image"], sample["emotion"]
+    def to_json(self):
+        return {
+            "image": self.pixels,
+            "emotion": int(self.emotion),
+            "emotion_label": self.emotion_label,
+            "set": self.ml_set,
+        }
 
-        # swap color axis because
-        # numpy image: H x W x C
-        # torch image: C X H X W
-        image = image.transpose((2, 0, 1))
-        return {"image": from_numpy(image), "emotion": emotion}
+    @staticmethod
+    def from_json(mongo_json):
+        return Sample(
+            pixels=mongo_json["image"],
+            emotion=mongo_json["emotion"],
+            ml_set=mongo_json["set"],
+        )
 
 
 # ========
@@ -68,12 +94,13 @@ class KaggleDataset(Dataset):
     IMAGE_HEIGHT = 48
     IMAGE_WIDTH = 48
 
-    def __init__(self, dataset="training", transform=None):
+    def __init__(self, set=None, transform=None):
         """"""
         super(KaggleDataset, self).__init__()
-        if dataset not in ("training", "validation", "test"):
-            dataset = "training"  # fall back to the default value
-        self._ds_mode = dataset
+        if set is not None and set not in ("training", "validation", "test"):
+            set = None  # fall back to the default value
+            # all data are returned, so the whole dataset!
+        self._ds_mode = set
         self._transform = transform
 
         self._dataset_path = os_path.join(
@@ -99,6 +126,19 @@ class KaggleDataset(Dataset):
         target_df = df[df["set"] == self._ds_mode]
         target_df.reset_index(inplace=True)
         return target_df[["emotion", "pixels"]]
+        df["set"] = df.Usage.apply(
+            lambda v: "training"
+            if v == "Training"
+            else "validation"
+            if v == "PrivateTest"
+            else "test"
+        )
+        if self._ds_mode:
+            # filter the data frame based on the target "usage" subset
+            target_df = df[df["set"] == self._ds_mode]
+            target_df.reset_index(inplace=True)
+            return target_df[["emotion", "pixels", "set"]]
+        return df[["emotion", "pixels", "set"]]
 
     def _extract_tar_package(self):
         """"""
@@ -119,19 +159,21 @@ class KaggleDataset(Dataset):
         return len(self._data_df)
 
     def __getitem__(self, index):
-        sample = self._data_df.pixels[index]
+        pixels = self._data_df.pixels[index]
         emotion = self._data_df.emotion[index]
-        img = np.fromstring(sample, dtype=np.uint8, sep=" ")
+        img = np.fromstring(pixels, dtype=np.uint8, sep=" ")
         sample = {"image": img, "emotion": emotion}
+        set = self._data_df.set[index]
+        sample = Sample(pixels=pixels, emotion=emotion, set=set)
         if self._transform:
             sample = self._transform(sample)
         return sample
 
 
 if __name__ == "__main__":
-
     from matplotlib import pyplot as plt
     from torch.utils.data import DataLoader
+
     from torchvision.transforms import Compose
     from functools import partial
 
@@ -147,16 +189,28 @@ if __name__ == "__main__":
             "bbox": dict(boxstyle="round", fc="white", ec="black", pad=0.2),
         },
     )
+    text_annotation = partial(
+        plt.text,
+        x=36,
+        y=46,
+        fontdict={
+            "color": "red",
+            "fontsize": 10,
+            "ha": "center",
+            "va": "center",
+            "bbox": dict(boxstyle="round", fc="white", ec="black", pad=0.2),
+        },
+    )
     transformers_pipeline = Compose(
         [
             Reshape(shape=(KaggleDataset.IMAGE_WIDTH, KaggleDataset.IMAGE_HEIGHT)),
-            ToTensor(),
+            ToTorchTensor(),
         ]
     )
-    dataset = KaggleDataset(dataset="validation", transform=transformers_pipeline)
+    dataset = KaggleDataset(set="validation", transform=transformers_pipeline)
     print("Nr. of Samples: ", len(dataset))
 
-    kaggle_data_loader = DataLoader(dataset, batch_size=4)
+    kaggle_data_loader = DataLoader(dataset, batch_size=4, collate_fn=lambda b: b)
     dataiter = iter(kaggle_data_loader)
     for i, batch in enumerate(dataiter):
         samples, labels = batch["image"], batch["emotion"]
@@ -164,6 +218,13 @@ if __name__ == "__main__":
             emotion = emotion.item()
             plt.imshow(img[0, ...], interpolation="bilinear", cmap=plt.cm.gray)
             text_annotation(s=KaggleDataset.EMOTION_MAP[emotion])
+            plt.axis("off")
+        for sample in batch:
+            img, emotion = sample.image, sample.emotion
+            plt.imshow(
+                img[0, ...], interpolation="bilinear", cmap=plt.cm.get_cmap("gray")
+            )
+            text_annotation(s=sample.emotion_label)
             plt.axis("off")
             plt.show()
         if i > 2:

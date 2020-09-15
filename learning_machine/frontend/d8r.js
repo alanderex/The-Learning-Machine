@@ -156,6 +156,9 @@ let d8r = (function(d3){
   }
 
   function compileData(nodeArray){
+    nodeArray.forEach(x => {
+      x.nodes[0].donut = x.links.map(y => y.value);
+    });
     let dataC = nodeArray.reduce(joinNodesReducer);
     dataC = {nodes: fixedNodes.nodes.concat(dataC.nodes), links: dataC.links};
     return dataC;
@@ -188,14 +191,15 @@ let d8r = (function(d3){
     }
   }
 
+// Hexagon array rotated to accommodate donut charts
   function hexagonArray(cx, cy, gs){
     return [
-      {x: cx - gs, y: cy - (Math.sqrt(3)*gs)},
       {x: cx + gs, y: cy - (Math.sqrt(3)*gs)},
       {x: cx + 2 * gs, y: cy},
       {x: cx + gs, y: cy + (Math.sqrt(3)*gs)},
       {x: cx - gs, y: cy + (Math.sqrt(3)*gs)},
-      {x: cx - 2 * gs, y: cy}
+      {x: cx - 2 * gs, y: cy},
+      {x: cx - gs, y: cy - (Math.sqrt(3)*gs)}
     ]
   }
 

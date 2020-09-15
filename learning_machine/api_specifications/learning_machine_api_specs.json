@@ -1,0 +1,420 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "The Learning Machine",
+    "description" : "API specification for the `Learning Machine` as part of the _Learning Toolkit_ developed by the **Dynamic Genetics Lab** for **We The Curious**.",
+    "version" : "1.0.0",
+    "license" : {
+      "name" : "Apache 2.0",
+      "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "tags" : [ {
+    "name" : "ml",
+    "description" : "APIs in use for the learning machine."
+  }, {
+    "name" : "test",
+    "description" : "APIs mainly used for tests / so far not enable in the frontend."
+  } ],
+  "paths" : {
+    "/faces" : {
+      "get" : {
+        "tags" : [ "ml" ],
+        "summary" : "Initialise the board",
+        "operationId" : "startup",
+        "description" : "Initialise the board by returning the first group of faces (nodes) and so starting a new game session. By default, these faces will be \"predicted\" as `neutral`, so they can be positioned (randomly) around the centre of the board.",
+        "responses" : {
+          "200" : {
+            "description" : "A list of `Nodes`, and a new `session_id`",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BackendResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "ml" ],
+        "summary" : "Refresh the board",
+        "operationId" : "refresh",
+        "description" : "Refresh the board with a brand new set of faces and initialise a **new** game sessoion (i.e. a new `session_id` will be returned for future requests).",
+        "requestBody" : {
+          "description" : "new_nodes (default `25`) corresponding to the number of faces to be returned by the backend.",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "new_nodes" : {
+                    "type" : "number",
+                    "format" : "int32",
+                    "default" : 25,
+                    "description" : "The number of new nodes to return to the board. Default is `25`."
+                  }
+                },
+                "required" : [ "new_nodes" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "A new list of `Nodes`, and a new `session_id`.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BackendResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/annotate" : {
+      "post" : {
+        "tags" : [ "ml" ],
+        "summary" : "send to the backend the annotation of an image.",
+        "operationId" : "annotate",
+        "description" : "This endpoint enables the interaction with the backend every time a face is dragged towards an emotion (bucket). In particular, the frontend sends the label of the emotion (e.g. `happy`, `sad`) for the selected face, and the list of (`ids` for) remaining other faces currently on the board. This will have the effect of updating the ML model in the backend (i.e. learning from the **new** example), so that **new** predictions for the other current images can be returned.",
+        "requestBody" : {
+          "description" : "A new `Annotation`, and the list of current `Nodes`, along with current `session_id`. (Optional) The number of new images to include in the board (default `1`).",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "session_id" : {
+                    "type" : "string",
+                    "format" : "uuid",
+                    "description" : "The `ID` of the current session"
+                  },
+                  "image" : {
+                    "$ref" : "#/components/schemas/Annotation"
+                  },
+                  "new_nodes" : {
+                    "type" : "number",
+                    "format" : "int32",
+                    "default" : 1,
+                    "example" : 1,
+                    "description" : "The number of new faces to add to the board. `new_nodes=1` by default."
+                  },
+                  "current_nodes" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string",
+                      "format" : "uuid",
+                      "description" : "The list of `uuid`s of images currently present in the board (in addition to the one that has been annotated)."
+                    }
+                  }
+                },
+                "required" : [ "session_id", "image", "current_nodes" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "New probabilities for emotions generated for remaining images, along with a new image (or images) returned.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BackendResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request. `session_id` invalid or not existing"
+          }
+        }
+      }
+    },
+    "/images" : {
+      "get" : {
+        "tags" : [ "test" ],
+        "summary" : "Return statistics of Images per class in the DB",
+        "operationId" : "image_stats",
+        "description" : "Return statistics of images in the DB (not the list). Statistics include the total number of images per each single emotion.",
+        "responses" : {
+          "200" : {
+            "description" : "Numbers of images per single emotion in the DB.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FacesStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/images/set" : {
+      "get" : {
+        "tags" : [ "test" ],
+        "summary" : "Return statustics of Images per set and per single emotion.",
+        "operationId" : "image_set_stats",
+        "description" : "Aggregated statistics of images in the DB per single set (i.e. `training`, `validation` and `test`) and per single emotion.",
+        "responses" : {
+          "200" : {
+            "description" : "Numbers of images per set (and per single emotion) in the DB",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FacesSetStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/images/{imageID}" : {
+      "get" : {
+        "tags" : [ "test" ],
+        "summary" : "Returns the single image given a valid `image_id`.",
+        "operationId" : "retrieve_image",
+        "description" : "Test endpoint to retrieve image data given an `image_id`. This endpoint is so far enabled only for testing purposes (as image data will be actually enclosed into the request as `base64` string.",
+        "parameters" : [ {
+          "name" : "imageID",
+          "in" : "path",
+          "description" : "ID of an image (face)",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful retrieval of the Image",
+            "content" : {
+              "image/jpeg" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              },
+              "image/png" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid ID supplied"
+          },
+          "404" : {
+            "description" : "Image not found"
+          }
+        }
+      }
+    },
+    "/images/{emotionLabel}" : {
+      "get" : {
+        "tags" : [ "test" ],
+        "summary" : "returns a list (`Nodes`) of randomly selected images associated to the specified emotion. This is a test endpoint.",
+        "operationId" : "images_emotions",
+        "parameters" : [ {
+          "name" : "emotionLabel",
+          "in" : "path",
+          "description" : "label of target emotion",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "happy", "sad", "angry", "neutral", "disgust", "fear", "surprise" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "A list of randomly selected images from the DB for the specificed emotion.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Nodes"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "FacesSetStats" : {
+        "description" : "Statistics summary of images per single emotiona and per group/set (i.e. `traiing`, `validation`, `test`)",
+        "type" : "object",
+        "properties" : {
+          "training" : {
+            "$ref" : "#/components/schemas/FacesStats"
+          },
+          "validation" : {
+            "$ref" : "#/components/schemas/FacesStats"
+          },
+          "test" : {
+            "$ref" : "#/components/schemas/FacesStats"
+          }
+        }
+      },
+      "FacesStats" : {
+        "description" : "Statistics summary per single emotions of the images in the Db",
+        "type" : "object",
+        "properties" : {
+          "happy" : {
+            "type" : "number",
+            "format" : "int32"
+          },
+          "sad" : {
+            "type" : "number",
+            "format" : "int32"
+          },
+          "angry" : {
+            "type" : "number",
+            "format" : "int32"
+          },
+          "fear" : {
+            "type" : "number",
+            "format" : "int32"
+          },
+          "disgust" : {
+            "type" : "number",
+            "format" : "int32"
+          },
+          "surprise" : {
+            "type" : "number",
+            "format" : "int32"
+          },
+          "neutral" : {
+            "type" : "number",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "happy", "sad", "angry", "fear", "disgust", "surprise", "neutral" ],
+        "example" : {
+          "happy" : 8989,
+          "sad" : 6077,
+          "angry" : 4935,
+          "disgust" : 547,
+          "surprise" : 4002,
+          "fear" : 5121,
+          "neutral" : 6198
+        }
+      },
+      "EmotionLinks" : {
+        "description" : "Object mapping the association between each label/emotion to its corresponding probability as predicted by the ML model in the backend. This map will be enclosed in all the instances of `Image` objects.",
+        "type" : "object",
+        "required" : [ "happy", "sad", "angry", "fear", "disgust", "surprise", "neutral" ],
+        "properties" : {
+          "happy" : {
+            "type" : "number",
+            "format" : "float"
+          },
+          "sad" : {
+            "type" : "number",
+            "format" : "float"
+          },
+          "angry" : {
+            "type" : "number",
+            "format" : "float"
+          },
+          "fear" : {
+            "type" : "number",
+            "format" : "float"
+          },
+          "disgust" : {
+            "type" : "number",
+            "format" : "float"
+          },
+          "surprise" : {
+            "type" : "number",
+            "format" : "float"
+          },
+          "neutral" : {
+            "type" : "number",
+            "format" : "float"
+          }
+        },
+        "example" : {
+          "happy" : 0.1,
+          "sad" : 0.12,
+          "angry" : 0.11,
+          "disgust" : 0.23,
+          "surprise" : 0.32,
+          "fear" : 0.12,
+          "neutral" : 0
+        }
+      },
+      "Image" : {
+        "type" : "object",
+        "description" : "Object model encapsulating the information of an Image as returned by the backend, i.e. `ImageID`, `data`, and predicted probability for that image for each emotion.\n*Note* The `data` field is used to encapsulate the actual image encoded as a `base64` string. This approach is so far preferred over using a field with a URL to issue a separate request. This will reduce the number of requests to the backend at the price of some \"overhead\" in the returned JSON objects. However, this field is **not required** as the backend will not include the data for images already on the board (e.g. in the response JSON object returned after an _annotation_ operation).",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid",
+            "example" : "d290f1ee-6c54-4b01-90e6-d701748f0851",
+            "description" : "Unique ID of an image (as returned by the backend)"
+          },
+          "data" : {
+            "type" : "string",
+            "format" : "byte",
+            "example" : "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAADKspdj1pVxFK5P2R/x3wUNLqpOcb6mrZ8JpfC/N0kpOWFihylJ8JmF2e7Pd428FY7P/9k=",
+            "description" : "Image data encoded as `base64` string."
+          },
+          "links" : {
+            "$ref" : "#/components/schemas/EmotionLinks"
+          }
+        },
+        "required" : [ "id", "links" ]
+      },
+      "Annotation" : {
+        "description" : "Object schema used to encapsulate the info of an annotation.",
+        "type" : "object",
+        "required" : [ "image_id", "label" ],
+        "properties" : {
+          "image_id" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "ID of an `image`"
+          },
+          "label" : {
+            "type" : "string",
+            "enum" : [ "happy", "sad", "disgust", "fear", "surprise", "neutral", "angry" ],
+            "example" : "happy",
+            "description" : "Textual label of the emotion."
+          }
+        }
+      },
+      "Nodes" : {
+        "description" : "Array of `Image` instances.",
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/components/schemas/Image"
+        },
+        "minItems" : 1,
+        "maxLength" : 25
+      },
+      "BackendResponse" : {
+        "type" : "object",
+        "description" : "Reusable Schema for Backend Response composed by `session_id` and array of nodes.",
+        "properties" : {
+          "session_id" : {
+            "type" : "string",
+            "format" : "uuid",
+            "description" : "id of the current (game) session."
+          },
+          "nodes" : {
+            "$ref" : "#/components/schemas/Nodes"
+          }
+        },
+        "required" : [ "session_id", "nodes" ]
+      }
+    }
+  }
+}
