@@ -37,7 +37,6 @@ class ToTorchTensor:
 
 
 class GrayScaleNormaliser:
-
     def __call__(self, image: np.ndarray):
         image /= 255
         return image

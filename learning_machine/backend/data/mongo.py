@@ -12,17 +12,15 @@ except ImportError:
     from dataset import Sample
 
 MLSet = Union[str, Tuple[str]]
-MongoFilter = Union[Dict[str, str],
-                    Dict[str, int],
-                    Dict[str, Dict[str, Tuple[str]]]]
+MongoFilter = Union[Dict[str, str], Dict[str, int], Dict[str, Dict[str, Tuple[str]]]]
 
 
 @dataclass
 class MongoDatabaseInfo:
     host: str = MongoClient.HOST
     port: int = MongoClient.PORT
-    db: str = 'learning_machine'
-    collection: str = 'kaggle_faces'
+    db: str = "learning_machine"
+    collection: str = "kaggle_faces"
 
 
 class MongoProxy:
@@ -39,8 +37,8 @@ class MongoProxy:
     @staticmethod
     def _generate_mongo_filter(ml_set: MLSet) -> MongoFilter:
         if isinstance(ml_set, str):
-            return {'set': ml_set}
-        return {'set': {'$in': tuple(s for s in ml_set)}}
+            return {"set": ml_set}
+        return {"set": {"$in": tuple(s for s in ml_set)}}
 
     def _init_mongo_connection(self) -> Optional[MongoClient]:
         """
@@ -52,7 +50,9 @@ class MongoProxy:
         try:
             _ = mongo_client.server_info()
         except ServerSelectionTimeoutError:
-            print('Connection to MongoDB[{}:{}] refused! Please check.'.format(host, port))
+            print(
+                "Connection to MongoDB[{}:{}] refused! Please check.".format(host, port)
+            )
             return None
         else:
             return mongo_client
@@ -87,8 +87,10 @@ class MongoProxy:
         """
         if all((self._mongo_client, self._db, self._collection)):
             # fetch all IDs of docs matching current filter
-            ids_cursor = self._collection.find(self._ml_set_filter, {'_id': 1}).sort('_id')
-            return tuple(obj_id['_id'] for obj_id in ids_cursor)
+            ids_cursor = self._collection.find(self._ml_set_filter, {"_id": 1}).sort(
+                "_id"
+            )
+            return tuple(obj_id["_id"] for obj_id in ids_cursor)
         return None
 
     def count(self, query_filter: MongoFilter = None):
@@ -109,14 +111,15 @@ class MongoProxy:
         except IndexError:
             pass
         else:
-            query_filter = {'_id': oid}
+            query_filter = {"_id": oid}
             query_filter.update(self._ml_set_filter)
             return self._collection.find_one(query_filter)
 
 
 class KaggleMongoDataset(Dataset):
-
-    def __init__(self, ml_set: MLSet, transform=None, db_info: MongoDatabaseInfo = None):
+    def __init__(
+        self, ml_set: MLSet, transform=None, db_info: MongoDatabaseInfo = None
+    ):
         self._transform = transform
         if db_info is None:
             db_info = MongoDatabaseInfo()  # default values
@@ -138,6 +141,6 @@ class KaggleMongoDataset(Dataset):
         n_classes = len(Sample.EMOTION_MAP.keys())
         class_weights = {}
         for emotion in Sample.EMOTION_MAP:
-            y_count = self._mongo_proxy.count(query_filter={'emotion': emotion})
+            y_count = self._mongo_proxy.count(query_filter={"emotion": emotion})
             class_weights[emotion] = num_samples / (n_classes * y_count)
         return class_weights

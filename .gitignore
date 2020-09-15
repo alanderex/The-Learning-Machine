@@ -1,11 +1,18 @@
-# DS_Store folders on Mac machines
-*.DS_Store
+# ================
+# Excluded Folders
+# ================
 
 # fer2013 dataset uncompressed
 learning_machine/backend/data/fer2013/fer2013
-
 # generated faces
 face_recognition/test_images/faces
+
+# Editors' & Notebooks Configuration Files/Folders
+# -----------------------------------------------
+.idea
+.vscode
+.ipynb_checkpoints
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

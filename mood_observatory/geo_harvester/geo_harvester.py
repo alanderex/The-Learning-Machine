@@ -36,7 +36,7 @@ class StreamListener(tweepy.StreamListener):
 
         """Report that something went wrong"""
 
-        print('Error: ' + repr(status_code))
+        print("Error: " + repr(status_code))
         return False
 
     def on_data(self, data):
@@ -61,7 +61,9 @@ class StreamListener(tweepy.StreamListener):
         liwc_w_geocoords.liwc_analysis(env.latest_geotweet, category_names, parse)
 
         # bring sentiment analysis back into 'geotweets_analysed' of 'geotweets' database
-        mongo_ops.import_analysed_tweet(mongoimport_executable_path, 'latest_geotweet.csvLIWC')
+        mongo_ops.import_analysed_tweet(
+            mongoimport_executable_path, "latest_geotweet.csvLIWC"
+        )
 
 
 if __name__ == "__main__":
@@ -74,27 +76,30 @@ if __name__ == "__main__":
 
     ## assign dictionary
     if len(sys.argv) != 2:
-        print(f'Please assign your dictionary for sentiment analysis.')
-        print(f'eg: python geo_harvester.py LIWC.dic')
+        print(f"Please assign your dictionary for sentiment analysis.")
+        print(f"eg: python geo_harvester.py LIWC.dic")
         exit(0)
     dictionary = sys.argv[1]
     parse, category_names = liwc_w_geocoords.load_dictionary(dictionary)
 
     ## See if the Mongo environment looks right
-    mongod_executable_path, mongoexport_executable_path, mongodump_executable_path, mongoimport_executable_path = mongo_ops.mongo_checks()
+    (
+        mongod_executable_path,
+        mongoexport_executable_path,
+        mongodump_executable_path,
+        mongoimport_executable_path,
+    ) = mongo_ops.mongo_checks()
 
     ## Check or make directory structure
-    if not os.path.exists(env.run_folder + '/db'):
+    if not os.path.exists(env.run_folder + "/db"):
         print(f"MongoDB database folder seems absent, creating folder...")
-        os.makedirs(env.run_folder + '/db')
-    if not os.path.exists(env.run_folder + '/db_logs'):
+        os.makedirs(env.run_folder + "/db")
+    if not os.path.exists(env.run_folder + "/db_logs"):
         print(f"DB log folder seems absent, creating folder...")
-        os.makedirs(env.run_folder + '/db_logs')
+        os.makedirs(env.run_folder + "/db_logs")
 
     ## Spin up a MongoDB server
-    mongo_ops.start_mongo(mongod_executable_path,
-                          env.db_path,
-                          env.db_log_filename)
+    mongo_ops.start_mongo(mongod_executable_path, env.db_path, env.db_log_filename)
 
     ## Start instance of stream listener
     auth = tweepy.OAuthHandler(credentials.CONSUMER_KEY, credentials.CONSUMER_SECRET)
@@ -102,4 +107,3 @@ if __name__ == "__main__":
     stream_listener = StreamListener(api=tweepy.API(wait_on_rate_limit=True))
     stream = tweepy.Stream(auth=auth, listener=stream_listener)
     stream.filter(locations=geo_boxes.boxes)
-
