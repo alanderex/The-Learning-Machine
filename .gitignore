@@ -2,16 +2,16 @@
 # Excluded Folders
 # ================
 
-# fer2013 dataset uncompressed
-learning_machine/backend/data/fer2013/fer2013
-# generated faces
-face_recognition/test_images/faces
+# dataset data folder
+learning_machine/backend/data/dataset
 
-# Editors' & Notebooks Configuration Files/Folders
+# Editors & Notebooks Configuration Files/Folders
 # -----------------------------------------------
 .idea
 .vscode
 .ipynb_checkpoints
+
+# exclude mac OS spotlight rubbish
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
