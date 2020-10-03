@@ -7,7 +7,7 @@ from pymongo.errors import ServerSelectionTimeoutError
 from torch.utils.data import Dataset
 
 try:
-    from .dataset import Sample
+    from .fer import Sample
 except ImportError:
     from dataset import Sample
 
