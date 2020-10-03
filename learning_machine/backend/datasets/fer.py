@@ -106,7 +106,7 @@ class FER(VisionDataset):
     ----------
     root : str
         Root directory where the local copy of dataset is stored.
-    partition : {"train", "validation", "test"} (default: "train")
+    split : {"train", "validation", "test"} (default: "train")
         Target data data_partition. Three data partitions are available, namely
         "training", "validation", and "test". Training data_partition is considered
         by default.
@@ -146,13 +146,13 @@ class FER(VisionDataset):
     def __init__(
         self,
         root: str,
-        partition: Partition = Partition.train,
+        split: Partition = Partition.train,
         download: bool = False,
         transform: Optional[Callable[[Any], Any]] = None,
     ):
         super(FER, self).__init__(root, transform=transform)
 
-        if partition not in ("train", "validation", "test"):
+        if split not in Partition.__members__.keys():
             raise ValueError(
                 "Data Partition not recognised. "
                 "Accepted values are 'train', 'validation', 'test'."
@@ -166,8 +166,8 @@ class FER(VisionDataset):
                 "Dataset not found." + " You can use download=True to download it"
             )
 
-        self.data_partition = Partition[partition]
-        data_file = self.data_files[self.data_partition]
+        self.split = Partition[split]
+        data_file = self.data_files[self.split]
         data_filepath = self.processed_folder / data_file
         self.data, self.targets = torch.load(data_filepath)
 
@@ -208,7 +208,7 @@ class FER(VisionDataset):
 
     @property
     def partition(self):
-        return self.data_partition
+        return self.split
 
     @property
     def class_to_idx(self):
@@ -226,7 +226,7 @@ class FER(VisionDataset):
         return True
 
     def extra_repr(self):
-        return "Split: {}".format(self.data_partition.value)
+        return "Split: {}".format(self.split.value)
 
     def download(self):
         """Download the FER data if it doesn't already exist in the processed folder"""
