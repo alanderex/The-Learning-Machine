@@ -1,231 +1,301 @@
 """
-Export Torch Dataset to interact with Face/Emotion data.
+This module provides access to the FER (Facial Emotion Recognition)
+as encapsulated as a `torchvision.datasets.VisionDataset` class.
+
+Notes
+-----
+The FER dataset [1]_ consists of `48x48` pixel grayscale images of faces.
+The faces have been automatically registered so that the face is more or less
+centered and occupies about the same amount of space in each image.
+
+The task is to categorize each face based on the emotion shown in the facial
+expression in to one of seven categories
+`(0=Angry, 1=Disgust, 2=Fear, 3=Happy, 4=Sad, 5=Surprise, 6=Neutral)`.
+
+These are the overall statistics of the Dataset, per emotion.
+
+.. list-table:: Dataset Overall Statistics
+    :widths: 25 25 50
+    :header-rows: 1
+
+    * - Emotion
+      - Emotion Label
+      - Count
+    * - 0
+      - Angry
+      - 4,593
+    * - 1
+      - Disgust
+      - 547
+    * - 2
+      - Fear
+      - 5,121
+    * - 3
+      - Happy
+      - 8,989
+    * - 4
+      - Sad
+      - 6,077
+    * - 5
+      - Surprise
+      - 4,002
+    * - 6
+      - Neutral
+      - 6,198
+
+Samples distributions per Data partitions, and per-emotions are reported below.
+
+.. list-table:: Data partitions statistics
+    :widths: 33 33 34
+    :header-rows: 1
+
+    * - Training
+      - Validation
+      - Test
+    * - 28,709
+      - 3589
+      - 3,589
+
+
+The distribution of the samples per single emotion for each of the three
+considered data data_partition is show in the barplot below:
+
+.. image:: images/fer_data_partitions_distributions.png
+    :width: 400
+    :alt: Samples distribution per-emotion among the three data partitions
+
+
+References
+-----------
+.. [1]  I. J. Goodfellow, D. Erhan, P. L. Carrier, A. Courville, M. Mirza, B. Hamner,
+   W. Cukierski, Y. Tang, D. Thaler, D.-H. Lee, Y. Zhou, C. Ramaiah, F. Feng,
+   R. Li, X. Wang, D. Athanasakis, J. Shawe-Taylor, M. Milakov, J. Park, R. Ionescu,
+   M. Popescu, C. Grozea, J. Bergstra, J. Xie, L. Romaszko, B. Xu,
+   Z. Chuang, and Y. Bengio. "Challenges in representation learning: A report on three
+   machine learning contests". Neural Networks, 64:59--63, 2015.
+   Special Issue on Deep Learning of Representations
 """
-from pandas import read_csv as pd_read_csv
-from torch.utils.data import Dataset
-from os import path as os_path
+
+import os
+import torch
+import pandas as pd
 import numpy as np
-from dataclasses import dataclass
-
-# KaggleDatasetMongoDB
-
-try:
-    from transforms import Reshape, ToTorchTensor
-except ImportError:
-    from .transforms import Reshape, ToTorchTensor
-
-DATA_FOLDER = os_path.join(os_path.abspath(os_path.dirname(__file__)))
+from PIL import Image
+from torchvision.datasets import VisionDataset
+from torchvision.datasets.utils import download_and_extract_archive
+from enum import Enum
+from pathlib import Path
+from math import sqrt
+from typing import Callable, Optional, Any
 
 
-# =================
-# Sample Data Class
-# =================
+class Partition(Enum):
+    """
+    Enumeration of Data Partitions for Machine learning experiments
+    """
+
+    train = "training"
+    validation = "validation"
+    test = "test"
 
 
-@dataclass
-class Sample:
-    EMOTION_MAP = {
-        0: "Angry",
-        1: "Disgust",
-        2: "Fear",
-        3: "Happy",
-        4: "Sad",
-        5: "Surprise",
-        6: "Neutral",
+class FER(VisionDataset):
+    """`FER` (Facial Emotion Recognition) Dataset
+
+    Attributes
+    ----------
+    root : str
+        Root directory where the local copy of dataset is stored.
+    partition : {"train", "validation", "test"} (default: "train")
+        Target data data_partition. Three data partitions are available, namely
+        "training", "validation", and "test". Training data_partition is considered
+        by default.
+    download :  bool, optional (False)
+        If true, the dataset will be downloaded from the internet and saved in the root
+        directory. If dataset is already downloaded, it is not downloaded again.
+    transform : Callable, optional
+        A function/transform that takes in an image and returns a transformed version
+    """
+
+    RAW_DATA_FILE = "fer2013.csv"
+    RAW_DATA_FOLDER = "fer2013"
+
+    resources = [
+        (
+            "https://www.dropbox.com/s/2rehtpc6b5mj9y3/fer2013.tar.gz?dl=1",
+            "ca95d94fe42f6ce65aaae694d18c628a",
+        )
+    ]
+
+    data_files = {
+        Partition.train: "training.pt",
+        Partition.validation: "validation.pt",
+        Partition.test: "test.pt",
     }
 
-    @property
-    def image(self):
-        if self._array is None:
-            self._array = np.fromstring(self.pixels, dtype=np.uint8, sep=" ")
-        return self._array
+    classes = [
+        "0 - angry",
+        "1 - disgust",
+        "2 - fear",
+        "3 - happy",
+        "4 - sad",
+        "5 - surprise",
+        "6 - neutral",
+    ]
 
-    def __call__(self, sample):
-        imgage, emotion = sample["image"], sample["emotion"]
+    def __init__(
+        self,
+        root: str,
+        partition: Partition = Partition.train,
+        download: bool = False,
+        transform: Optional[Callable[[Any], Any]] = None,
+    ):
+        super(FER, self).__init__(root, transform=transform)
 
-        if imgage.ndim == 2:  # no channel is provided
-            imgage = imgage[..., np.newaxis]
-        imgage = imgage.reshape(self._shape)
-        return {"image": imgage, "emotion": emotion}
+        if partition not in ("train", "validation", "test"):
+            raise ValueError(
+                "Data Partition not recognised. "
+                "Accepted values are 'train', 'validation', 'test'."
+            )
 
-    @image.setter
-    def image(self, new_image: np.ndarray):
-        self._array = new_image
+        if download:
+            self.download()
 
-    @property
-    def emotion_label(self):
-        return self.EMOTION_MAP[self.emotion]
+        if not self._check_exists():
+            raise RuntimeError(
+                "Dataset not found." + " You can use download=True to download it"
+            )
 
-    def to_json(self):
-        return {
-            "image": self.pixels,
-            "emotion": int(self.emotion),
-            "emotion_label": self.emotion_label,
-            "set": self.ml_set,
-        }
-
-    @staticmethod
-    def from_json(mongo_json):
-        return Sample(
-            pixels=mongo_json["image"],
-            emotion=mongo_json["emotion"],
-            ml_set=mongo_json["set"],
-        )
-
-
-# ========
-# Dataset
-# ========
-
-
-class KaggleDataset(Dataset):
-    """Torch Dataset for the Kaggle
-    Facial Emotion Recognition Challenge"""
-
-    EMOTION_MAP = {
-        0: "Angry",
-        1: "Disgust",
-        2: "Fear",
-        3: "Happy",
-        4: "Sad",
-        5: "Surprise",
-        6: "Neutral",
-    }
-    IMAGE_HEIGHT = 48
-    IMAGE_WIDTH = 48
-
-    def __init__(self, set=None, transform=None):
-        """"""
-        super(KaggleDataset, self).__init__()
-        if set is not None and set not in ("training", "validation", "test"):
-            set = None  # fall back to the default value
-            # all data are returned, so the whole dataset!
-        self._ds_mode = set
-        self._transform = transform
-
-        self._dataset_path = os_path.join(
-            DATA_FOLDER, "fer2013", "fer2013", "fer2013.csv"
-        )
-        self._dataset_archive_path = os_path.join(
-            DATA_FOLDER, "fer2013", "fer2013.tar.gz"
-        )
-        self._data_df = self._load_data()
-
-    def _load_data(self):
-        if not os_path.exists(self._dataset_path):
-            self._extract_tar_package()
-        df = pd_read_csv(self._dataset_path)
-        df["set"] = df.Usage.apply(
-            lambda v: "training"
-            if v == "Training"
-            else "validation"
-            if v == "PrivateTest"
-            else "test"
-        )
-        # filter the data frame based on the target "usage" subset
-        target_df = df[df["set"] == self._ds_mode]
-        target_df.reset_index(inplace=True)
-        return target_df[["emotion", "pixels"]]
-        df["set"] = df.Usage.apply(
-            lambda v: "training"
-            if v == "Training"
-            else "validation"
-            if v == "PrivateTest"
-            else "test"
-        )
-        if self._ds_mode:
-            # filter the data frame based on the target "usage" subset
-            target_df = df[df["set"] == self._ds_mode]
-            target_df.reset_index(inplace=True)
-            return target_df[["emotion", "pixels", "set"]]
-        return df[["emotion", "pixels", "set"]]
-
-    def _extract_tar_package(self):
-        """"""
-        import tarfile
-
-        try:
-            file = tarfile.open(self._dataset_archive_path, mode="r:gz")
-            try:
-                file.extractall()
-            finally:
-                file.close()
-        except FileNotFoundError as fnf_exp:
-            raise fnf_exp
-        else:
-            file.close()
+        self.data_partition = Partition[partition]
+        data_file = self.data_files[self.data_partition]
+        data_filepath = self.processed_folder / data_file
+        self.data, self.targets = torch.load(data_filepath)
 
     def __len__(self):
-        return len(self._data_df)
+        return len(self.data)
 
     def __getitem__(self, index):
-        pixels = self._data_df.pixels[index]
-        emotion = self._data_df.emotion[index]
-        img = np.fromstring(pixels, dtype=np.uint8, sep=" ")
-        sample = {"image": img, "emotion": emotion}
-        set = self._data_df.set[index]
-        sample = Sample(pixels=pixels, emotion=emotion, set=set)
-        if self._transform:
-            sample = self._transform(sample)
-        return sample
+        """
 
+        Parameters
+        ----------
+        index : int
+            Index of the sample
 
-if __name__ == "__main__":
-    from matplotlib import pyplot as plt
-    from torch.utils.data import DataLoader
+        Returns
+        -------
+        tuple
+            (Image, Target) where target is index of the target class.
+        """
+        img, target = self.data[index], int(self.targets[index])
 
-    from torchvision.transforms import Compose
-    from functools import partial
+        # doing this so that it is consistent with all other datasets
+        # to return a PIL Image
+        img = Image.fromarray(img.numpy(), mode="L")
 
-    text_annotation = partial(
-        plt.text,
-        x=36,
-        y=46,
-        fontdict={
-            "color": "red",
-            "fontsize": 10,
-            "ha": "center",
-            "va": "center",
-            "bbox": dict(boxstyle="round", fc="white", ec="black", pad=0.2),
-        },
-    )
-    text_annotation = partial(
-        plt.text,
-        x=36,
-        y=46,
-        fontdict={
-            "color": "red",
-            "fontsize": 10,
-            "ha": "center",
-            "va": "center",
-            "bbox": dict(boxstyle="round", fc="white", ec="black", pad=0.2),
-        },
-    )
-    transformers_pipeline = Compose(
-        [
-            Reshape(shape=(KaggleDataset.IMAGE_WIDTH, KaggleDataset.IMAGE_HEIGHT)),
-            ToTorchTensor(),
-        ]
-    )
-    dataset = KaggleDataset(set="validation", transform=transformers_pipeline)
-    print("Nr. of Samples: ", len(dataset))
+        if self.transform is not None:
+            img = self.transform(img)
 
-    kaggle_data_loader = DataLoader(dataset, batch_size=4, collate_fn=lambda b: b)
-    dataiter = iter(kaggle_data_loader)
-    for i, batch in enumerate(dataiter):
-        samples, labels = batch["image"], batch["emotion"]
-        for img, emotion in zip(samples, labels):
-            emotion = emotion.item()
-            plt.imshow(img[0, ...], interpolation="bilinear", cmap=plt.cm.gray)
-            text_annotation(s=KaggleDataset.EMOTION_MAP[emotion])
-            plt.axis("off")
-        for sample in batch:
-            img, emotion = sample.image, sample.emotion
-            plt.imshow(
-                img[0, ...], interpolation="bilinear", cmap=plt.cm.get_cmap("gray")
+        return img, target
+
+    @property
+    def processed_folder(self):
+        return Path(self.root) / self.__class__.__name__ / "processed"
+
+    @property
+    def raw_folder(self):
+        return Path(self.root) / self.__class__.__name__ / "raw"
+
+    @property
+    def partition(self):
+        return self.data_partition
+
+    @property
+    def class_to_idx(self):
+        return {_class: i for i, _class in enumerate(self.classes)}
+
+    @property
+    def idx_to_class(self):
+        return {v: k for k, v in self.class_to_idx.items()}
+
+    def _check_exists(self):
+        for data_fname in self.data_files.values():
+            data_file = self.processed_folder / data_fname
+            if not data_file.exists():
+                return False
+        return True
+
+    def extra_repr(self):
+        return "Split: {}".format(self.data_partition.value)
+
+    def download(self):
+        """Download the FER data if it doesn't already exist in the processed folder"""
+
+        if self._check_exists():
+            return
+
+        os.makedirs(self.raw_folder, exist_ok=True)
+        os.makedirs(self.processed_folder, exist_ok=True)
+
+        # download files
+        for url, md5 in self.resources:
+            filename = url.rpartition("/")[-1].split("?")[0]
+            download_and_extract_archive(
+                url, download_root=self.raw_folder, filename=filename, md5=md5
             )
-            text_annotation(s=sample.emotion_label)
-            plt.axis("off")
-            plt.show()
-        if i > 2:
-            break
+
+        # process and save as torch files
+        def _set_partition(label: str) -> str:
+            if label == "Training":
+                return Partition.train.value
+            if label == "PrivateTest":
+                return Partition.validation.value
+            return Partition.test.value
+
+        print("Processing...")
+        raw_data_filepath = self.raw_folder / self.RAW_DATA_FOLDER / self.RAW_DATA_FILE
+        raw_df = pd.read_csv(raw_data_filepath)
+        raw_df["data_partition"] = raw_df.Usage.apply(_set_partition)
+
+        for partition in Partition:
+            dataset = raw_df[raw_df["data_partition"] == partition.value]
+            images = self._images_as_torch_tensors(dataset)
+            labels = self._labels_as_torch_tensors(dataset)
+            data_file = self.processed_folder / self.data_files[partition]
+            with open(data_file, "wb") as f:
+                torch.save((images, labels), f)
+        print("Done!")
+
+    def _images_as_torch_tensors(self, dataset: pd.DataFrame) -> torch.Tensor:
+        """
+        Extract all the pixel from the input dataframes, and convert images in
+        a [sample x features] torch.Tensor
+
+        Parameters
+        ----------
+        dataset : pd.DataFrame
+            The target dataset data_partition (i.e. training, validation, or test)
+            as extracted from the original dataset
+        Returns
+        -------
+        torch.Tensor
+            [sample x pixels] tensor representing the whole data data_partition as
+            torch Tensor.
+        """
+        imgs_np = (dataset["pixels"].map(self._to_numpy)).values
+        imgs_np = np.concatenate(imgs_np, axis=0)
+        samples_no, pixels = imgs_np.shape
+        new_shape = (samples_no, int(sqrt(pixels)), int(sqrt(pixels)))
+        return torch.from_numpy(imgs_np).view(new_shape)
+
+    @staticmethod
+    def _labels_as_torch_tensors(dataset: pd.DataFrame):
+        """Extract labels from pd.Series and convert into torch.Tensor"""
+        labels_np = dataset["emotion"].values.astype(np.int)
+        return torch.from_numpy(labels_np)
+
+    @staticmethod
+    def _to_numpy(pixels: str):
+        """Convert one-line string pixels into NumPy array, adding the first
+        extra axis (sample dimension) later used as the concatenation axis"""
+        return np.fromstring(pixels, dtype=np.uint8, sep=" ")[np.newaxis, ...]
