@@ -25,3 +25,5 @@ dependencies:
     - nptyping==1.3.0
     - pytest-6.1.0
     - Sphinx==3.2.1
+    - uvicorn==0.12.1
+    - fastapi==0.61.1
