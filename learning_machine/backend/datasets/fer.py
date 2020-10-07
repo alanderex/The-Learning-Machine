@@ -152,6 +152,7 @@ class FER(VisionDataset):
     ):
         super(FER, self).__init__(root, transform=transform)
 
+        split = split.strip().lower()
         if split not in Partition.__members__.keys():
             raise ValueError(
                 "Data Partition not recognised. "
@@ -252,7 +253,7 @@ class FER(VisionDataset):
                 return Partition.validation.value
             return Partition.test.value
 
-        print("Processing...")
+        print("Processing...", end="")
         raw_data_filepath = self.raw_folder / self.RAW_DATA_FOLDER / self.RAW_DATA_FILE
         raw_df = pd.read_csv(raw_data_filepath)
         raw_df["data_partition"] = raw_df.Usage.apply(_set_partition)
@@ -298,4 +299,7 @@ class FER(VisionDataset):
     def _to_numpy(pixels: str):
         """Convert one-line string pixels into NumPy array, adding the first
         extra axis (sample dimension) later used as the concatenation axis"""
-        return np.fromstring(pixels, dtype=np.uint8, sep=" ")[np.newaxis, ...]
+        img_array = np.fromstring(pixels, dtype=np.uint8, sep=" ")[np.newaxis, ...]
+        img_array = img_array.astype(np.float)
+        img_array /= 255
+        return img_array
