@@ -3,4 +3,5 @@ This package provides access to all the datasets available to the learning machi
 """
 
 from .fer import FER
-from .transforms import *
+
+__all__ = ["FER"]
