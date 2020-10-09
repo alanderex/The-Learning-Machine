@@ -134,19 +134,19 @@ class FER(VisionDataset):
     }
 
     classes = [
-        "0 - angry",
-        "1 - disgust",
-        "2 - fear",
-        "3 - happy",
-        "4 - sad",
-        "5 - surprise",
-        "6 - neutral",
+        "angry",
+        "disgust",
+        "fear",
+        "happy",
+        "sad",
+        "surprise",
+        "neutral",
     ]
 
     def __init__(
         self,
         root: str,
-        split: Partition = Partition.train,
+        split: str = "train",
         download: bool = False,
         transform: Optional[Callable[[Any], Any]] = None,
     ):
@@ -300,6 +300,4 @@ class FER(VisionDataset):
         """Convert one-line string pixels into NumPy array, adding the first
         extra axis (sample dimension) later used as the concatenation axis"""
         img_array = np.fromstring(pixels, dtype=np.uint8, sep=" ")[np.newaxis, ...]
-        img_array = img_array.astype(np.float)
-        img_array /= 255
         return img_array
