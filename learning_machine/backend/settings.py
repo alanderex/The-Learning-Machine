@@ -1,0 +1,3 @@
+from models import VGG_MODEL, UNET_MODEL
+
+MODEL_NAME = VGG_MODEL
