@@ -28,12 +28,6 @@ let d8r = (function(d3){
     return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
   }
 
-  function getRandomFace() {
-    let index = getRandomIntInclusive(1, 20);
-    let emotion = ["angry","disgust","fear","happy","neutral","sad","surprise"][getRandomIntInclusive(0,6)]
-    return "./faces/" + emotion + "/" + emotion + "_" + index + ".png";
-  }
-
   // UUID generator (https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript)
   function uuidv4() {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
@@ -98,9 +92,20 @@ let d8r = (function(d3){
   function getNodeArray(lngth){
     let nodes = [];
     for(let i = 0; i < lngth; i++){
-      nodes.push(getNode(uuidv4(),fixedNodeIDs,nodeLinks(1)));
+      nodes.push(getNode(uuidv4(), fixedNodeIDs, nodeLinks(1)));
     }
     return nodes;
+  }
+
+  function getNodeArrayLive(lngth) {
+    fetch(`http://localhost:8000/faces/${lngth}`)
+      // .then((response) => { console.log(response) })
+      // .then((myJson) => {
+      //   console.log(myJson);
+      // })
+      .catch((error) => {
+        console.error('Server call error:', error);
+      });
   }
 
   function updateNode(thisNode, newLinks){
@@ -122,8 +127,8 @@ let d8r = (function(d3){
       } else {
         let outwardLinks = [];
         fixedNodeIDs.forEach((x) => outwardLinks.push(serverResponse[i].links[x]));
-        thisID, fixedNodeIDs, outwardLinks, image
-        let nuNode = getNode(serverResponse[i].id, fixedNodeIDs, outwardLinks, serverResponse.image);
+        // thisID, fixedNodeIDs, outwardLinks, image
+        let nuNode = getNode(serverResponse[i].id, fixedNodeIDs, outwardLinks, serverResponse.data);
         nodeArray.push(nuNode);
       }
     }
@@ -219,6 +224,7 @@ let d8r = (function(d3){
     fixedNodes: fixedNodes,
     getNode: getNode,
     getNodeArray: getNodeArray,
+    getNodeArrayLive: getNodeArrayLive,
     toNodeArrayNode: toNodeArrayNode,
     updateNode: updateNode,
     updateNodeArray: updateNodeArray,
