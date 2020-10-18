@@ -219,6 +219,10 @@ class FER(VisionDataset):
     def idx_to_class(self):
         return {v: k for k, v in self.class_to_idx.items()}
 
+    @staticmethod
+    def classes_map():
+        return {i: c for i, c in enumerate(FER.classes)}
+
     def _check_exists(self):
         for data_fname in self.data_files.values():
             data_file = self.processed_folder / data_fname

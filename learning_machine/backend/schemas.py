@@ -4,27 +4,26 @@ from pydantic import BaseModel
 from typing import List
 
 
-class EmotionLinks(BaseModel):
-    angry: float
-    disgust: float
-    fear: float
-    happy: float
-    sad: float
-    surprise: float
-    neutral: float
+class EmotionLink(BaseModel):
+    source: str
+    target: str
+    value: float
 
 
-class Image(BaseModel):
+class Node(BaseModel):
     id: str
-    data: str
-    links: EmotionLinks
+    image: str
+    links: List[EmotionLink]
+    group: str = "data"
 
 
 class BackendResponse(BaseModel):
-    session_id: str
-    nodes: List[Image]
+    # session_id: str
+    nodes: List[Node]
 
 
 class Annotation(BaseModel):
     image_id: str
     label: str
+    current_nodes: List[str]
+    new_nodes: int = 1
