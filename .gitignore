@@ -22,6 +22,8 @@ __pycache__/
 # FER local dataset
 FER/*
 learning_machine/*/FER/*
+/learning_machine/backend/datasets/FER/*
+/learning_machine/backend/models/weights/*
 
 # C extensions
 *.so
