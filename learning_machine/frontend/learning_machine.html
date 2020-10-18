@@ -3,37 +3,41 @@
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+          crossorigin="anonymous">
 
     <title>Learning Machine</title>
 
     <style>
       .link {
-        stroke: #999;
-        /* stroke-opacity: 0.2; */
-        stroke-opacity: 0;
+          stroke: #999;
+           stroke-opacity: 0.1;
+          /*stroke-opacity: 1;*/  /* TEST */
       }
 
       .node circle {
-        stroke: #fff;
-        stroke-width: 7px;
-        fill: #EEE;
-        /* fill: #ee6c61; */
+          stroke: #fff;
+          stroke-width: 7px;
+          fill: #EEE;
+          /* fill: #ee6c61; */
       }
 
       .emoji-label {
-        font-family: sans-serif;
-        font-size: 14px;
-        fill: #888;
+          font-family: sans-serif;
+          font-size: 14px;
+          fill: #888;
       }
 
       #refresh-label {
-        font-family: sans-serif;
-        font-size: 14px;
-        fill: #888;
+          font-family: sans-serif;
+          font-size: 14px;
+          fill: #888;
       }
 
       /* #refresh {
@@ -41,8 +45,8 @@
       } */
 
       text {
-        font-family: sans-serif;
-        font-size: 10px;
+          font-family: sans-serif;
+          font-size: 10px;
       }
 
     </style>
@@ -62,16 +66,18 @@
     <script>
 
       // *** Set up plotting area ***
-      function color(d) { return d3.scaleOrdinal(d3.schemeCategory10)(d.group)}
+      function color(d) {
+          return d3.scaleOrdinal(d3.schemeCategory10)(d.group)
+      }
 
       const svg = d3.select("svg"),
-      width = +svg.attr("width"),
-      height = +svg.attr("height");
+          width = +svg.attr("width"),
+          height = +svg.attr("height");
 
       // Set up a clipPath for the images
       svg.append("clipPath")
           .attr("id", "clipCircle")
-        .append("circle")
+          .append("circle")
           .attr("r", 25)
           .attr("cx", 0)
           .attr("cy", 0);
@@ -84,354 +90,375 @@
 
       // Transition
       const t = svg.transition()
-       .duration(1000);
+          .duration(1000);
 
       // Set up a colour palette for donut plots
       // let donutColor = d3.scaleOrdinal()
       //   .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
-      let colours = ["#E4324F","#F19C38","#F6CA45","#5FCE43","#5BC7FA","#6559A6"];
+      let colours = ["#E4324F", "#F19C38", "#F6CA45", "#5FCE43", "#5BC7FA", "#6559A6"];
 
       // Target circle radius
       let targetr = 55;
 
       // Target circles for the emoji areas
-      const hex = d8r.hexagonArray(cx,cy,gs);
-      for(let i = 0; i < 6; i++){
-        svg.append("circle")
-          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-          .attr("r",targetr)
-          .attr("fill", "#EEE")
-          .attr("cx", hex[i].x)
-          .attr("cy", hex[i].y)
-          .attr("id", d8r.fixedNodeIDs[i] + "_target")
-          .attr("stroke", colours[i])
-          .attr("stroke-width", 3);
+      const hex = d8r.hexagonArray(cx, cy, gs);
+      for (let i = 0; i < 6; i++) {
+          svg.append("circle")
+              .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+              .attr("r", targetr)
+              .attr("fill", "#EEE")
+              .attr("cx", hex[i].x)
+              .attr("cy", hex[i].y)
+              .attr("id", d8r.fixedNodeIDs[i] + "_target")
+              .attr("stroke", colours[i])
+              .attr("stroke-width", 3);
       }
       // Label the target emojis
-      for(let i = 0; i < 6; i++){
-        svg.append("text")
-          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-          .attr("class", "emoji-label")
-          .text( d8r.fixedNodeIDs[i] )
-          .attr("text-anchor", "middle")
-          .attr("x", hex[i].x)
-          .attr("y", hex[i].y+40)
-          .attr("pointer-events", "none");
+      for (let i = 0; i < 6; i++) {
+          svg.append("text")
+              .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+              .attr("class", "emoji-label")
+              .text(d8r.fixedNodeIDs[i])
+              .attr("text-anchor", "middle")
+              .attr("x", hex[i].x)
+              .attr("y", hex[i].y + 40)
+              .attr("pointer-events", "none");
       }
 
       // Refresh button
       svg.append("g")
-        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-        .attr("id","refresh")
-      .append("circle")
-        .attr("cx", hex[1].x + 2*targetr)
-        .attr("cy", hex[2].y)
-        .attr("fill", "#EEE")
-        .attr("r", targetr);
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("id", "refresh")
+          .append("circle")
+          .attr("cx", hex[1].x + 2 * targetr)
+          .attr("cy", hex[2].y)
+          .attr("fill", "#EEE")
+          .attr("r", targetr);
 
       svg.append("text")
-        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-        .attr("id", "refresh-label")
-        .attr("text-anchor", "middle")
-        .attr("x", hex[1].x + 2*targetr)
-        .attr("y", hex[2].y + 5)
-        .text("refresh")
-        .attr("pointer-events", "none");
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("id", "refresh-label")
+          .attr("text-anchor", "middle")
+          .attr("x", hex[1].x + 2 * targetr)
+          .attr("y", hex[2].y + 5)
+          .text("refresh")
+          .attr("pointer-events", "none");
 
-      console.log(colours);
 
       // *** End set up plotting area ***
 
       // Set up data
-          // let nodesArrayPromise = d8r.getNodeArrayLive(numberOfFaces);
-          fetch(`http://localhost:8000/faces/${numberOfFaces}`).then((nodesArray) => {
-            nodesArray = nodesArray.json();
-        let data = d8r.compileData(nodesArray);
-        for(let i = 0; i < 6; i++){
-          data.nodes[i].fx = hex[i].x
-          data.nodes[i].fy = hex[i].y
-        }
+      let g, arc, pie, link, node;
+      let faces, graph, simulation;
 
-        console.log(nodesArray);
-
-        console.log(data);
-
-        // Set up simulation
-        let simulation = d3.forceSimulation(data.nodes)
-            .force("charge", d3.forceManyBody().strength(-1000))
-            .force("link", d3.forceLink(data.links).id(d => d.id).strength(d => d.value))
-            .alphaTarget(1).on("tick", ticked);
-
-        // Define link and node
-        let g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-        let link = g.append("g").selectAll(".link")
-        let node = g.append("g").selectAll(".node")
-
-        // Arcs for donut charts
-        let arc = d3.arc().innerRadius(25).outerRadius(28);
-        let pie = d3.pie()
-          .value(function(d) {
-            return d;
+      // Arcs for donut charts
+      arc = d3.arc().innerRadius(25).outerRadius(28);
+      pie = d3.pie()
+          .value(function (d) {
+              return d;
           })
-        .sort(null);
-
-        function donuts(d) {
-          let dataNode = d3.select(this);
-
-          console.log(dataNode);
-
-          console.log(pie(d.donut));
-
-          dataNode.selectAll(".arc")
-              .data(function(d){return pie(d.donut);})
-              .join(
-                enter => {
-                  enter.append("path")
-                    .attr("class","arc")
-                    .attr("d", arc)
-                    .style("fill", function(d,i){return colours[i]});
-                    // .style("fill", d => donutColor(d.index));
-                },
-                update => update,
-                exit => exit.remove
-              );
-        }
-
-        restart();
-
-  // 6 6559A6, 3 F6CA45, 5 5BC7FA, 1 E4324F, 2 F19C38, 4 5FCE43
+          .sort(null);
 
 
-        // What happens when the simulation ticks
-        function ticked() {
+      function initSVGboard(graph) {
+          for (let i = 0; i < 6; i++) {
+              graph.nodes[i].fx = hex[i].x
+              graph.nodes[i].fy = hex[i].y
+          }
+          // Define graph, links and nodes placeholder
+          // Get rid of pre-existing board, if any
+          d3.select("#graph").remove();
+          
+          g = svg.append("g")
+              .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+              .attr("id", "graph");
+          link = g.append("g")
+              .attr("id", "links")
+              .selectAll(".link");
+          node = g.append("g")
+              .attr("id", "nodes")
+              .selectAll(".node");
+      }
+
+      fetch(`http://localhost:8000/faces/${numberOfFaces}`)
+          .then(response => response.json())
+          .then((data) => {
+              faces = data.nodes;
+              graph = d8r.compileData(data.nodes);
+              initSVGboard(graph);
+              init_simulation(faces, graph, simulation);
+
+              // Set up simulation
+              // simulation = d3.forceSimulation(graph.nodes)
+              //     .force("charge", d3.forceManyBody().strength(-1000))
+              //     .force("link", d3.forceLink(graph.links).id(d => d.id).strength(d => d.value))
+              //     .alphaTarget(1).on("tick", ticked);
+
+          });
+
+      // What happens when the simulation ticks
+      function ticked() {
           link.attr("x1", d => d.source.x)
               .attr("y1", d => d.source.y)
               .attr("x2", d => d.target.x)
               .attr("y2", d => d.target.y);
           node.attr("transform", d => `translate(${d.x}, ${d.y})`);
-        }
+      }
 
-        function restart() {
-          // Apply the general update pattern to the nodes and links
-          node = node.data(data.nodes, d => d.id)
-            .join(
-              enter => {
-                let thisNode = enter.append("g")
-                  .attr("class","node")
-                  .attr("id", d => d.id)
-                  .call(drag(simulation));
-                thisNode.append("circle")
-                  .attr("r", 25);
-                thisNode.append("image")
-                  .attr("xlink:href", d => d.image)
-                  .attr("clip-path",d => {
-                    if (d.group === "target") {return ""}
-                    else {return "url(#clipCircle)"}
-                  })
-                  .attr("height",d => {
-                    if (d.group === "target") {return 50}
-                    else {return 68}
-                  })
-                  .attr("width",d => {
-                    if (d.group === "target") {return 50}
-                    else {return 102}
-                  })
-                  .attr("x",d => {
-                    if (d.group === "target") {return -25}
-                    else {return -52}
-                  })
-                  .attr("y",d => {
-                    if (d.group === "target") {return -25}
-                    else {return -34}
-                  });
-                thisNode.filter(d => (d.group === "data"))
-                  .each(donuts);
-                // thisNode.append("path")
-                //   .attr("d", )
-                thisNode.attr("opacity", 0)
-                  .call(enter => enter.transition(t)
-                  .attr("opacity", 1));
-                // console.log(thisNode);
-                return thisNode;
-              },
-              update => update,
-              exit => exit.remove()
-            );
+      function drag(faces, graph, simulation) {
 
-          link = link.data(data.links, d => d.source.id + "-" + d.target.id)
-            .join(
-              enter => enter.append("line").attr("class", "link"),
-              update => update,
-              exit => exit.remove()
-            );
-
-          // Update and restart the simulation.
-          simulation.nodes(data.nodes);
-          simulation.force("link").links(data.links);
-          simulation.alpha(0.3).restart();
-        }
-
-        function drag(simulation) {
-
-          function dragstarted(d) {
-            if (d.group===1) {return};
-            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
+          function dragStarted(d) {
+              if (d.group === 1) {
+                  return;
+              }
+              if (!d3.event.active)
+                  simulation.alphaTarget(0.3).restart();
+              d.fx = d.x;
+              d.fy = d.y;
           }
 
           function dragged(d) {
-            if (d.group===1) {return};
-            d.fx = d3.event.x;
-            d.fy = d3.event.y;
+              if (d.group === 1) {
+                  return;
+              }
+              d.fx = d3.event.x;
+              d.fy = d3.event.y;
           }
 
-          function dragended(d) {
-            if (d.group===1) {return};
-            if (!d3.event.active) simulation.alphaTarget(0);
-            for(let i = 0; i < 6; i++){
-              if(d8r.dist(data.nodes[i].fx,data.nodes[i].fy,d.fx,d.fy)<targetr){
-                // Send the label to the backend
-                // serverCall(d.id, data.nodes[i].id);
-                serverCallLive(d.id, data.nodes[i].id);
-                // Make the target circle flash
-                let target = d3.select("#" + data.nodes[i].id + "_target");
-                target.transition(t).attr("fill","#CCC").transition(t).attr("fill","#EEE");
+          function dragEnded(d) {
+              if (d.group === 1) {
+                  return;
               }
-            }
-            d.fx = null;
-            d.fy = null;
+              if (!d3.event.active)
+                  simulation.alphaTarget(0);
+              for (let i = 0; i < 6; i++) {
+                  if (d8r.dist(graph.nodes[i].fx, graph.nodes[i].fy, d.fx, d.fy) < targetr) {
+                      // Send the label to the backend
+                      sendToBackend(faces, graph, d.id, graph.nodes[i].id);
+                      // Make the target circle flash
+                      let target = d3.select("#" + graph.nodes[i].id + "_target");
+                      target.transition(t).attr("fill", "#CCC").transition(t).attr("fill", "#EEE");
+                  }
+              }
+              d.fx = null;
+              d.fy = null;
           }
 
           return d3.drag()
-              .on("start", dragstarted)
+              .on("start", dragStarted)
               .on("drag", dragged)
-              .on("end", dragended);
-        }
+              .on("end", dragEnded);
+      }
 
-        // What happens when you click the refresh button
-        const refreshButton = d3.select("#refresh");
-        refreshButton.on("click", () => {
-          refreshButton.select("circle")
-            .transition().duration(100)
-            .attr("fill","#CCC")
-            .transition().duration(100)
-            .attr("fill","#EEE");
-          // Remove all current data nodes
-          console.log(data);
-          data.nodes.splice(6,data.nodes.length-1);
-          data.links = [];
-          // restart();
+      function donuts(node) {
+          let dataNode = d3.select(this);
+          // console.log(dataNode);
+          // console.log(pie(node.donut));
+          dataNode.selectAll(".arc")
+              .data(function (d) {
+                  return pie(d.donut);
+              })
+              .join(
+                  enter => {
+                      enter.append("path")
+                          .attr("class", "arc")
+                          .attr("d", arc)
+                          .style("fill", function (d, i) {
+                              return colours[i]
+                          });
+                      // .style("fill", node => donutColor(node.index));
+                  },
+                  update => update,
+                  exit => exit.remove
+              );
+      }
 
+      function init_simulation(faces, graph, simulation) {
+          // Initialise Simulation
+          simulation = d3.forceSimulation(graph.nodes)
+              .force("charge", d3.forceManyBody().strength(-1000))
+              .force("link", d3.forceLink(graph.links).id(d => d.id).strength(d => d.value))
+              .alphaTarget(1).on("tick", ticked);
+
+          // Apply the general update pattern to the nodes and links
+          node = node.data(graph.nodes, d => d.id)
+              .join(
+                  enter => {
+                      let thisNode = enter.append("g")
+                          .attr("class", "node")
+                          .attr("id", d => d.id)
+                          .call(drag(faces, graph, simulation));
+                      thisNode.append("circle")
+                          .attr("r", 25);
+                      thisNode.append("image")
+                          .attr("xlink:href", d => d.image)
+                          .attr("clip-path", d => {
+                              if (d.group === "target") {
+                                  return ""
+                              } else {
+                                  return "url(#clipCircle)"
+                              }
+                          })
+                          .attr("height", d => {
+                              if (d.group === "target") {
+                                  return 50
+                              } else {
+                                  return 68
+                              }
+                          })
+                          .attr("width", d => {
+                              if (d.group === "target") {
+                                  return 50
+                              } else {
+                                  return 102
+                              }
+                          })
+                          .attr("x", d => {
+                              if (d.group === "target") {
+                                  return -25
+                              } else {
+                                  return -52
+                              }
+                          })
+                          .attr("y", d => {
+                              if (d.group === "target") {
+                                  return -25
+                              } else {
+                                  return -34
+                              }
+                          });
+                      thisNode.filter(d => (d.group === "data"))
+                          .each(donuts);
+                      // thisNode.append("path")
+                      //   .attr("d", )
+                      thisNode.attr("opacity", 0)
+                          .call(enter => enter.transition(t)
+                              .attr("opacity", 1));
+                      // console.log(thisNode);
+                      return thisNode;
+                  },
+                  update => update,
+                  exit => exit.remove()
+              );
+
+          link = link.data(graph.links, d => d.source.id + "-" + d.target.id)
+              .join(
+                  enter => enter.append("line").attr("class", "link"),
+                  update => update,
+                  exit => exit.remove()
+              );
+
+          // Update and restart the simulation.
+          simulation.nodes(graph.nodes);
+          simulation.force("link").links(graph.links);
+          simulation.alpha(0.3).restart();
+      }
+
+      function sendToBackend(faces, graph, imageId, emoLabel) {
+          console.log(imageId, emoLabel);
+          // Remove the dragged element
+          for (let i = 0; i < faces.length; i++) {
+              if (faces[i].id === imageId) {
+                  faces.splice(i, 1);
+                  break;
+              }
+          }
           let callObject = {
-            restart: true,
-            new_nodes: numberOfFaces // Number of new nodes (in addition to current_nodes)
-          };
-          fetch('https://localhost:8282/learning_machine_backend', { // Or whatever it's called
-            method: 'POST', // or 'PUT'
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(callObject),
-          })
-          .then((response) => response.json())
-          .then((myJson) => {
-            // console.log('Success:', dat);
-            // nodesArray = dat.nodes.map(d => Object.create(d));
-            //console.log(nodesArray.map(x => x.nodes[0].id));
-
-            // May need to find and update existing objects if this doesn't work
-            //data = d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode));
-
-            // like this
-            nodesArray = d8r.refreshNodeArray(nodesArray, myJson.nodes);
-            data = d8r.compileData(nodesArray);
-
-            restart();
-          })
-          .catch((error) => {
-            console.error('Restart server error:', error);
-          });
-        });
-
-        function serverCall(imageId, emolabel){
-            console.log(imageId, emolabel);
-            // Remove the dragged element
-            for(let i = 0; i < nodesArray.length; i++){
-              if(nodesArray[i].nodes[0].id === imageId){
-                nodesArray.splice(i, 1);
-              }
-            }
-            // Check it's been removed
-            //console.log(nodesArray.map(x => x.nodes[0].id));
-            nodesArray = d8r.updateNodeArray(nodesArray, 1, 0);
-            //console.log(nodesArray.map(x => x.nodes[0].id));
-            data = d8r.compileData(nodesArray);
-            //console.log(data);
-            restart();
-        }
-
-        function serverCallLive(imageId, emolabel){
-            console.log(imageId, emolabel);
-            // Remove the dragged element
-            for(let i = 0; i < nodesArray.length; i++){
-              if(nodesArray[i].nodes[0].id === imageId){
-                nodesArray.splice(i, 1);
-              }
-            }
-            let callObject = {
-              id: imageId,   // Could be any unique id you like
-              label: emolabel, // or e.g. sad, disgusted
+              image_id: imageId,   // Could be any unique id you like
+              label: emoLabel, // or e.g. sad, disgusted
               new_nodes: 1, // Number of new nodes (in addition to current_nodes)
-              current_nodes: nodesArray.map(x => x.nodes[0].id)  // So the server knows which nodes to send updates for
-            };
-            // console.log(callObject);
-            // console.log(JSON.stringify(callObject));
-
-            // Test object parsing
-            // fetch('http://localhost:8080/dummy_json_response.json')
-            // .then((response) => {
-            //     return response.json();
-            // })
-            // .then((myJson) => {
-            //   // console.log(myJson.nodes.map(d8r.toNodeArrayNode));
-            //   console.log(nodesArray);
-            //   console.log(myJson);
-            //   // console.log(d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode).map(d => Object.create(d))));
-            //   // console.log(d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode))); // May need to find and update existing objects if this doesn't work
-            //
-            //   // d8r.refreshNodeArray(nodesArray,myJson);
-            // });
-
-            // Send the update to the server and receive the response
-            fetch('https://localhost:8282/learning_machine_backend', { // Or whatever it's called
+              current_nodes: faces.map(x => x.id)  // So the server knows which nodes to send updates for
+          };
+          // Send the update to the server and receive the response
+          fetch("http://localhost:8000/faces/annotate/", {
               method: 'POST', // or 'PUT'
               headers: {
-                'Content-Type': 'application/json',
+                  "accept": "application/json",
+                  "Content-Type": "application/json"
               },
-              body: JSON.stringify(callObject),
-            })
-            .then((response) => response.json())
-            .then((myJson) => {
-              // console.log('Success:', dat);
-              // nodesArray = dat.nodes.map(d => Object.create(d));
-              //console.log(nodesArray.map(x => x.nodes[0].id));
+              body: JSON.stringify(callObject)
+          }).then(response => response.json())
+              .then((data) => {
+                  // nodesArray = dat.nodes.map(d => Object.create(d));
+                  //console.log(nodesArray.map(x => x.nodes[0].id));
 
-              // May need to find and update existing objects if this doesn't work
-              //data = d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode));
+                  // May need to find and update existing objects if this doesn't work
+                  //data = d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode));
 
-              // like this
-              nodesArray = d8r.refreshNodeArray(nodesArray, myJson.nodes);
-              data = d8r.compileData(nodesArray);
-              restart();
-            })
-            .catch((error) => {
+                  // like this
+                  faces = data.nodes;  //d8r.refreshNodeArray(faces, data.nodes);
+                  graph = d8r.compileData(faces);
+                  initSVGboard(graph);
+                  init_simulation(faces, graph, simulation);
+              }).catch((error) => {
               console.error('Server call error:', error);
-            });
-        }
-        });
-      
+          });
+      }
+
+      // =========================================================================
+
+      // What happens when you click the refresh button
+      const refreshButton = d3.select("#refresh");
+      // refreshButton.on("click", () => {
+      //     refreshButton.select("circle")
+      //         .transition().duration(100)
+      //         .attr("fill", "#CCC")
+      //         .transition().duration(100)
+      //         .attr("fill", "#EEE");
+      //     // Remove all current data nodes
+      //     console.log(data);
+      //     data.nodes.splice(6, data.nodes.length - 1);
+      //     data.links = [];
+      //     // restart();
+      //
+      //     let callObject = {
+      //         restart: true,
+      //         new_nodes: numberOfFaces // Number of new nodes (in addition to current_nodes)
+      //     };
+      //     fetch('https://localhost:8282/learning_machine_backend', { // Or whatever it's called
+      //         method: 'POST', // or 'PUT'
+      //         headers: {
+      //             'Content-Type': 'application/json',
+      //         },
+      //         body: JSON.stringify(callObject),
+      //     })
+      //         .then((response) => response.json())
+      //         .then((myJson) => {
+      //             // console.log('Success:', dat);
+      //             // nodesArray = dat.nodes.map(d => Object.create(d));
+      //             //console.log(nodesArray.map(x => x.nodes[0].id));
+      //
+      //             // May need to find and update existing objects if this doesn't work
+      //             //data = d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode));
+      //
+      //             // like this
+      //             nodesArray = d8r.refreshNodeArray(nodesArray, myJson.nodes);
+      //             data = d8r.compileData(nodesArray);
+      //
+      //             restart();
+      //         })
+      //         .catch((error) => {
+      //             console.error('Restart server error:', error);
+      //         });
+      // });
+
+      // function serverCall(imageId, emoLabel) {
+      //     console.log(imageId, emoLabel);
+      //     // Remove the dragged element
+      //     for (let i = 0; i < nodesArray.length; i++) {
+      //         if (nodesArray[i].nodes[0].id === imageId) {
+      //             nodesArray.splice(i, 1);
+      //         }
+      //     }
+      //     // Check it's been removed
+      //     //console.log(nodesArray.map(x => x.nodes[0].id));
+      //     nodesArray = d8r.updateNodeArray(nodesArray, 1, 0);
+      //     //console.log(nodesArray.map(x => x.nodes[0].id));
+      //     data = d8r.compileData(nodesArray);
+      //     //console.log(data);
+      //     restart();
+      // }
     </script>
   </body>
 </html>
