@@ -1,3 +1,6 @@
-from models import VGG_MODEL, UNET_MODEL
+from models import VGG_MODEL
+from datasets import FER_TRAINING
 
-MODEL_NAME = VGG_MODEL
+
+LEARNING_MACHINE_MODEL = VGG_MODEL
+DATASET_NAME = FER_TRAINING
