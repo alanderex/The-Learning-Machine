@@ -2,19 +2,23 @@
 LearningMachine Abstract base class definition
 """
 
-from typing import Any, NoReturn, Sequence
+from typing import Any, NoReturn, Sequence, Tuple
 from nptyping import NDArray
 from numpy import float32 as float32
 import torch
 from abc import abstractmethod, ABC
-from torch import nn, optim
+from torch import nn, optim, Tensor
 from torch.utils.data.dataloader import default_collate
 from pathlib import Path
 import os
 from torchvision.transforms import ToTensor
+from torchvision.datasets.utils import download_url
 from datasets import Sample
+from typing import Callable, Union, Dict, Optional
+from PIL.Image import Image as PILImage
 
 # Types
+ModelOutput = Union[Tensor, Tuple[Tensor, Tensor]]
 Prediction = NDArray[
     (
         Any,
@@ -22,6 +26,8 @@ Prediction = NDArray[
     ),
     float32,
 ]
+TransformerType = Callable[[Union[Sequence[Callable], PILImage, Tensor]], Tensor]
+StateDictType = Union[Dict[str, Tensor], Dict[str, Tensor]]
 
 BASE_FOLDER = Path(os.path.dirname(os.path.abspath(__file__)))
 TORCH_DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -36,14 +42,18 @@ class LearningMachine(ABC):
         self._model = None
         self._weights = None
         self._transformer = self._set_transformer()
+        self._criterion = self._init_criterion()
+        self._optimiser = self._init_optimiser()
+
+        os.makedirs(self.CHECKPOINTS_FOLDER, exist_ok=True)
 
     @staticmethod
-    def _set_transformer():
+    def _set_transformer() -> TransformerType:
         """Default transformer: always convert an image to a torch tensor!"""
         return ToTensor()
 
     @property
-    def model(self):
+    def model(self) -> nn.Module:
         if self._model is None:
             self._model = self._load_model()
             # Move model instance to the target memory location
@@ -52,31 +62,66 @@ class LearningMachine(ABC):
 
     @property
     @abstractmethod
-    def checkpoint(self):
+    def checkpoint(self) -> Path:
         pass
 
     @property
     @abstractmethod
+    def weights_urls(self) -> Tuple[str, str]:
+        pass
+
+    @property
     def optimiser(self) -> optim.Optimizer:
-        pass
+        if self._optimiser is None:
+            self._optimiser = self._init_optimiser()
+        return self._optimiser
 
     @property
-    @abstractmethod
     def criterion(self) -> nn.Module:
-        pass
+        if self._criterion is None:
+            self._criterion = self._init_criterion()
+        return self._criterion
 
     @property
-    def weights(self):
+    def weights(self) -> StateDictType:
         if self._weights is None:
             print(f"[INFO]: loading {self.checkpoint}")
+            if not self.checkpoint.exists():
+                self._download_weights()
             self._weights = torch.load(self.checkpoint, map_location=TORCH_DEVICE)
         return self._weights
 
     @abstractmethod
-    def _load_model(self):
+    def _load_model(self) -> nn.Module:
         raise NotImplementedError("You should not instantiate a Model explicitly.")
 
-    def transform(self, sample: Sample) -> torch.Tensor:
+    @abstractmethod
+    def _init_optimiser(self) -> optim.Optimizer:
+        pass
+
+    @abstractmethod
+    def _init_criterion(self) -> nn.Module:
+        pass
+
+    def _download_weights(self) -> NoReturn:
+        # download weights files
+        url, md5 = self.weights_urls
+        filename = url.rpartition("/")[-1].split("?")[0]
+        download_url(url, root=self.CHECKPOINTS_FOLDER, filename=filename, md5=md5)
+
+    def _calculate_loss(
+        self,
+        labels: Tensor,
+        model_output: ModelOutput,
+        input_batch: Optional[Tensor] = None,
+    ) -> Tensor:
+        loss = self.criterion(model_output, labels)
+        return loss
+
+    def _model_call(self, batch: Sequence[Sample]) -> Tensor:
+        return self.model(batch)
+
+    def transform(self, sample: Sample) -> Tensor:
         return self._transformer(sample.image)
 
     def predict(self, samples: Sequence[Sample], as_proba: bool = True) -> Prediction:
@@ -99,8 +144,8 @@ class LearningMachine(ABC):
         with torch.no_grad():
             self.model.eval()
             batch = batch.to(TORCH_DEVICE)
-            outputs = self.model(batch)
-            outputs = outputs.detach().numpy()
+            outputs = self._model_call(batch)
+            outputs = self._get_model_emotion_predictions(outputs)
             if not as_proba:
                 return outputs  # return logits
             probabilities = (outputs - outputs.min(axis=1, keepdims=True)) / (
@@ -108,6 +153,10 @@ class LearningMachine(ABC):
             )
             probabilities /= probabilities.sum(axis=1, keepdims=True)
             return probabilities
+
+    @staticmethod
+    def _get_model_emotion_predictions(model_output: ModelOutput) -> Prediction:
+        return model_output.detach().numpy()
 
     def fit(self, samples: Sequence[Sample]) -> NoReturn:
         """"""
@@ -122,8 +171,10 @@ class LearningMachine(ABC):
             # forward pass
             batch = batch.to(TORCH_DEVICE)
             labels = labels.to(TORCH_DEVICE)
-            outputs = self.model(batch)
-            loss = self.criterion(outputs, labels)
+            outputs = self._model_call(batch)
+            loss = self._calculate_loss(
+                labels=labels, model_output=outputs, input_batch=batch
+            )
             # backward + optimize
             loss.backward()
             self.optimiser.step()

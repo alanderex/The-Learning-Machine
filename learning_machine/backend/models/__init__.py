@@ -1,9 +1,10 @@
-from .vgg import VGG
+from .vgg import VGGMachine
+from .unet import UNetMachine
 from .learning_machine import LearningMachine
 
 VGG_MODEL = "vgg"
 UNET_MODEL = "unet"
-MODELS_PROXY = {VGG_MODEL: VGG(), UNET_MODEL: None}
+MODELS_PROXY = {VGG_MODEL: VGGMachine(), UNET_MODEL: UNetMachine()}
 
 
 def get_model(key: str) -> LearningMachine:

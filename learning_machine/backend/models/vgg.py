@@ -1,11 +1,14 @@
-from typing import Any
+"""VGG13 based model for Learning Machine """
 
 import torch
 from torch import nn
 from torch import optim
 from torchvision.models import vgg13
 from torchvision.transforms import Compose, Lambda, ToTensor
-from .learning_machine import LearningMachine
+from .learning_machine import LearningMachine, TransformerType
+from pathlib import Path
+from typing import Any, Tuple
+from PIL.Image import Image as PILImage
 
 
 class VGGNet(nn.Module):
@@ -45,26 +48,34 @@ class VGGNet(nn.Module):
         return super().__call__(*args, **kwargs)
 
 
-class VGG(LearningMachine):
+class VGGMachine(LearningMachine):
     """VGG-based Learning Machine"""
 
     def __init__(self) -> None:
-        super(VGG, self).__init__()
+        super(VGGMachine, self).__init__()
 
     @staticmethod
-    def _set_transformer():
-        return Compose([Lambda(lambda img: img.convert("RGB")), ToTensor()])
+    def _set_transformer() -> TransformerType:
+        def _convert_rgb(img: PILImage) -> PILImage:
+            return img.convert("RGB")
+
+        return Compose([Lambda(_convert_rgb), ToTensor()])
 
     @property
-    def checkpoint(self):
+    def checkpoint(self) -> Path:
         return self.CHECKPOINTS_FOLDER / "vgg_learning_machine_overfitting.pt"
 
     @property
-    def optimiser(self) -> optim.Optimizer:
+    def weights_urls(self) -> Tuple[str, str]:
+        return (
+            "https://www.dropbox.com/s/2q68kitijwona2l/vgg_learning_machine_overfitting.pt?dl=1",
+            "e76c032150d9762e94a6b94b3d5c2b9d",
+        )
+
+    def _init_optimiser(self) -> optim.Optimizer:
         return optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
 
-    @property
-    def criterion(self) -> nn.Module:
+    def _init_criterion(self) -> nn.Module:
         return nn.CrossEntropyLoss()
 
     def _load_model(self) -> nn.Module:
