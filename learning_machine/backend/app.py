@@ -1,31 +1,28 @@
 """"""
-from models import get_model
-from settings import MODEL_NAME
-from torchvision.transforms import Compose, ToTensor, Lambda
-from schemas import Image, EmotionLinks
-from random import choices, sample
-from datasets import FER
-import numpy as np
-from models import load_vgg
-import torch
-from fastapi import FastAPI
 from io import BytesIO
-from fastapi.responses import StreamingResponse, RedirectResponse
-from dataclasses import dataclass
-from PIL.Image import Image as PILImage
-import json
+from typing import Sequence, List
+import uvicorn
+from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import StreamingResponse
 
+from datasets import Sample, get_dataset
+from models import get_model
+from models.learning_machine import Prediction
+from schemas import Node, EmotionLink, BackendResponse, Annotation
+from settings import LEARNING_MACHINE_MODEL, DATASET_NAME
 
 learning_machine_backend = FastAPI()
+
 
 origins = [
     "http://localhost",
     "http://localhost:8282",
-    "http://127.0.0.1:8282",
     "http://localhost:8000",
+    "http://127.0.0.1:8282",
     "http://127.0.0.1:8000",
+    "http://localhost:63342",
 ]
 
 learning_machine_backend.add_middleware(
@@ -36,65 +33,45 @@ learning_machine_backend.add_middleware(
     allow_headers=["*"],
 )
 
-fer_train = FER(root=".", download=True, split="train")
-fer_validation = FER(root=".", download=True, split="validation")
 
-datasets = {"train": fer_train, "valid": fer_validation}
-
-
-@dataclass
-class ImageData:
-    img_id: str
-    emotion: int
-    image: PILImage  # PIL Image
-
-
-# @learning_machine_backend.get("/faces/")
-# async def faces():
-#     return RedirectResponse("/faces/25")
+def make_nodes(
+    samples: Sequence[Sample], emotions: Prediction, classes: Sequence[str]
+) -> List[Node]:
+    nodes = list()
+    for sample, emotion in zip(samples, emotions):
+        emotion_map = {c: p for c, p in zip(classes, emotion)}
+        emotion_map.pop("neutral")
+        norm = sum(emotion_map.values())
+        emotion_map = {c: v / norm for c, v in emotion_map.items()}
+        links = [
+            EmotionLink(source=sample.uuid, value=prob, target=emotion)
+            for emotion, prob in emotion_map.items()
+        ]
+        node = Node(
+            id=sample.uuid,
+            image=f"http://localhost:8000/faces/image/{sample.uuid}",
+            links=links,
+        )
+        nodes.append(node)
+    return nodes
 
 
 @learning_machine_backend.get("/faces/{number_of_faces}/")
 async def faces(number_of_faces: int = 25):
-    model = get_model(MODEL_NAME)
-    images = list()
-    for _ in range(number_of_faces):
-        dataset_choice = choices(list(datasets.keys()), k=1)[0]
-        dataset = datasets[dataset_choice]
-        img_index = sample(range(len(dataset)), k=1)[0]
-        image_id = f"{dataset_choice}_{img_index}"
-        image, emotion = dataset[img_index]
-        img_data = ImageData(img_id=image_id, emotion=emotion, image=image)
-        images.append(img_data)
-    transformer = Compose([Lambda(lambda img: img.convert("RGB")), ToTensor()])
-    returned_images = list()
-    classes = datasets["train"].classes
-    with torch.no_grad():
-        model.eval()
-        pred_emotions = list()
-        for img_data in images:
-            image = transformer(img_data.image)
-            image = torch.unsqueeze(image, 0)
-            pred = model(image)
-            pred = pred.detach().numpy()[0]
-            preds_dict = {k: v for k, v in zip(classes, pred)}
-            print(preds_dict)
-            emotion_links = EmotionLinks(**preds_dict)
-            pred_emotions.append(emotion_links)
-    for image, prediction in zip(images, pred_emotions):
-        img_url = f"/faces/image/{image.img_id}"
-        json_image = Image(id=image.img_id, data=img_url, links=prediction)
-        returned_images.append(json_image.dict())
-    return json.dumps(returned_images)
+    machine = get_model(LEARNING_MACHINE_MODEL)
+    dataset = get_dataset(DATASET_NAME)
+    samples = dataset.get_random_samples(k=number_of_faces)
+    emotions = machine.predict(samples=samples)
+    nodes = make_nodes(samples, emotions, dataset.emotions)
+    response = BackendResponse(nodes=nodes)
+    return response.dict()
 
 
 @learning_machine_backend.get("/faces/image/{image_id}")
-def get_emotion_face(image_id: str):
-    # TODO: adapt to image_id
-    dst, index = image_id.split("_")
-    dataset = datasets[dst]
-    print(image_id, dst, index)
-    image, _ = dataset[int(index)]
+async def get_emotion_face(image_id: str):
+    dataset = get_dataset(DATASET_NAME)
+    sample = dataset[image_id]
+    image = sample.image
     buffer = BytesIO()
     image.save(buffer, format="png")
     buffer.seek(0)
@@ -104,6 +81,21 @@ def get_emotion_face(image_id: str):
     )
 
 
-# @learning_machine_backend.post("")
-# def update_emotions():
-#     model = get_model(MODEL_NAME)
+@learning_machine_backend.post("/faces/annotate/")
+async def annotate(annotation: Annotation):
+    dataset = get_dataset(DATASET_NAME)
+    machine = get_model(LEARNING_MACHINE_MODEL)
+    annotated_sample = dataset[annotation.image_id]
+    # TODO: this should go in the DB too!!
+    annotated_sample.emotion = dataset.emotion_index(annotation.label)
+    other_samples = [dataset[nid] for nid in annotation.current_nodes]
+    other_samples += dataset.get_random_samples(k=annotation.new_nodes)
+    machine.fit((annotated_sample,))
+    updated_emotions = machine.predict(samples=other_samples)
+    nodes = make_nodes(other_samples, updated_emotions, dataset.emotions)
+    response = BackendResponse(nodes=nodes)
+    return response.dict()
+
+
+if __name__ == "__main__":
+    uvicorn.run(learning_machine_backend, host="127.0.0.1", port=8000)
