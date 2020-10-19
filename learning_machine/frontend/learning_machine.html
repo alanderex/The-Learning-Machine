@@ -65,8 +65,15 @@
     <script src="d8r.js"></script>
     <script>
 
+    // TODO: Delete Console logs for debugging!
+
       // *** Set up plotting area ***
+      // FIXME: I think this function is not used anymore?
       function color(d) {
+          // d.group is NOT a number anymore:
+          // group attribute of nodes has been changed to either "target" and "data"
+          // (in the donut demo version, presumably) 
+          // so I think this is not going to be working anymore, anyway :)
           return d3.scaleOrdinal(d3.schemeCategory10)(d.group)
       }
 
@@ -209,7 +216,7 @@
       function drag(faces, graph, simulation) {
 
           function dragStarted(d) {
-              if (d.group === 1) {
+              if (d.group === "target") {
                   return;
               }
               if (!d3.event.active)
@@ -219,7 +226,7 @@
           }
 
           function dragged(d) {
-              if (d.group === 1) {
+              if (d.group === "target") {
                   return;
               }
               d.fx = d3.event.x;
@@ -227,7 +234,7 @@
           }
 
           function dragEnded(d) {
-              if (d.group === 1) {
+              if (d.group === "target") {
                   return;
               }
               if (!d3.event.active)
