@@ -2,9 +2,6 @@
 # Excluded Folders
 # ================
 
-# dataset data folder
-learning_machine/backend/data/dataset
-
 # Editors & Notebooks Configuration Files/Folders
 # -----------------------------------------------
 .idea
@@ -24,6 +21,11 @@ FER/*
 learning_machine/*/FER/*
 /learning_machine/backend/datasets/FER/*
 /learning_machine/backend/models/weights/*
+/learning_machine/backend/data/dataset
+
+# Python env (Codespaces)
+pythonenv3.8
+
 
 # C extensions
 *.so
