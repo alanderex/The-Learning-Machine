@@ -3,7 +3,7 @@ FastAPI Main App
 """
 import uvicorn
 from fastapi import FastAPI
-from endpoints import faces, get_emotion_face, annotate
+from endpoints import faces, get_face, annotate, test_face
 from fastapi.middleware.cors import CORSMiddleware
 
 learning_machine_backend = FastAPI()
@@ -27,10 +27,9 @@ learning_machine_backend.add_middleware(
 )
 
 faces = learning_machine_backend.get("/faces/{number_of_faces}/")(faces)
-get_emotion_face = learning_machine_backend.get("/faces/image/{image_id}")(
-    get_emotion_face
-)
+get_emotion_face = learning_machine_backend.get("/faces/image/{image_id}")(get_face)
 annotate = learning_machine_backend.post("/faces/annotate/")(annotate)
+test_face = learning_machine_backend.get("/faces/test/{image_id}")(test_face)
 
 if __name__ == "__main__":
     uvicorn.run(learning_machine_backend, host="127.0.0.1", port=8000)
