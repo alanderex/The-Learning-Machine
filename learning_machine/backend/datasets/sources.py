@@ -106,6 +106,10 @@ class DataSource:
         for sample_idx in rnd_indices:
             samples.append(self[sample_idx])
             self._items_sampled.add(sample_idx)
+        # #  tweak
+        # samples.append(
+        #     self["c69b31e495d132603ae3c8e72dc236ed0e1889bd7b62b0e2f431161ca5ad0c1f_2f6"]
+        # )
         return samples
 
 
