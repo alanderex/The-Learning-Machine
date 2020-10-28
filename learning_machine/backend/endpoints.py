@@ -42,7 +42,17 @@ async def faces(number_of_faces: int = 25):
     return response.dict()
 
 
-async def get_emotion_face(image_id: str):
+async def test_face(image_id: str):
+    dataset = get_dataset(DATASET_NAME)
+    machine = get_model(LEARNING_MACHINE_MODEL)
+    test_sample = dataset[image_id]
+    emotions = machine.predict(samples=test_sample)
+    nodes = make_nodes([test_sample], emotions, dataset.emotions)
+    response = BackendResponse(nodes=nodes)
+    return response.dict()
+
+
+async def get_face(image_id: str):
     dataset = get_dataset(DATASET_NAME)
     sample = dataset[image_id]
     image = sample.image
