@@ -124,7 +124,9 @@ class LearningMachine(ABC):
     def transform(self, sample: Sample) -> Tensor:
         return self._transformer(sample.image)
 
-    def predict(self, samples: Sequence[Sample], as_proba: bool = True) -> Prediction:
+    def predict(
+        self, samples: Union[Sample, Sequence[Sample]], as_proba: bool = True
+    ) -> Prediction:
         """
 
         Parameters
