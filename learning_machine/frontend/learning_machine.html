@@ -16,16 +16,16 @@
 
     <style>
       .link {
-          stroke: #999;
-           stroke-opacity: 0.1;
+           stroke: #999;
+           stroke-opacity: 0;
           /*stroke-opacity: 1;*/  /* TEST */
       }
 
       .node circle {
           stroke: #fff;
-          stroke-width: 7px;
+          stroke-width: 8px;
           fill: #EEE;
-          /* fill: #ee6c61; */
+          /* fill: #ee6c61;*/
       }
 
       .emoji-label {
@@ -95,8 +95,20 @@
       // Set up a colour palette for donut plots
       // let donutColor = d3.scaleOrdinal()
       //   .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-
-      let colours = ["#E4324F", "#F19C38", "#F6CA45", "#5FCE43", "#5BC7FA", "#6559A6"];
+      
+      let colours = ["#5BC7FA",  // angry
+                     "#F6CA45",  // disgust
+                     "#5FCE43",  // fear
+                     "#E4324F",   // "happy",
+                     "#F19C38",  // sad
+                     "#6559A6"]; // surprise
+      
+      // let colours = ["#e90000",  // angry - red
+      //                "#aec826",  // disgust - greenish
+      //                "#fad92f",  // fear - yellow
+      //                "#f66e00",  // "happy" - orange
+      //                "#b36800",  // sad - brown
+      //                "#4d6cff"]; // surprise - blue
 
       // Target circle radius
       let targetr = 55;
@@ -157,8 +169,7 @@
       pie = d3.pie()
           .value(function (d) {
               return d;
-          })
-          .sort(null);
+          }).sort(null);
 
 
       function initSVGboard(graph) {
@@ -253,20 +264,18 @@
 
       function donuts(node) {
           let dataNode = d3.select(this);
-          // console.log(dataNode);
-          // console.log(pie(node.donut));
           dataNode.selectAll(".arc")
               .data(function (d) {
                   return pie(d.donut);
-              })
-              .join(
+              }).join(
                   enter => {
                       enter.append("path")
                           .attr("class", "arc")
                           .attr("d", arc)
                           .style("fill", function (d, i) {
-                              return colours[i]
+                              return colours[i];
                           });
+                          
                       // .style("fill", node => donutColor(node.index));
                   },
                   update => update,
@@ -292,6 +301,7 @@
                       thisNode.append("circle")
                           .attr("r", 25);
                       thisNode.append("image")
+                          .attr("title", d => d.id)
                           .attr("xlink:href", d => d.image)
                           .attr("clip-path", d => {
                               if (d.group === "target") {
@@ -335,7 +345,6 @@
                       thisNode.attr("opacity", 0)
                           .call(enter => enter.transition(t)
                               .attr("opacity", 1));
-                      // console.log(thisNode);
                       return thisNode;
                   },
                   update => update,
@@ -356,7 +365,6 @@
       }
 
       function sendToBackend(faces, graph, imageId, emoLabel) {
-          console.log(imageId, emoLabel);
           // Remove the dragged element
           for (let i = 0; i < faces.length; i++) {
               if (faces[i].id === imageId) {

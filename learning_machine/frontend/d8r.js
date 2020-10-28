@@ -1,7 +1,8 @@
 let d8r = (function (d3) {
 
     // Fixed node IDs
-    const fixedNodeIDs = ["happy", "sad", "disgust", "fear", "angry", "surprise"];
+    // const fixedNodeIDs = ["happy", "sad", "disgust", "fear", "angry", "surprise"];
+    const fixedNodeIDs = ["angry", "disgust", "fear", "happy", "sad", "surprise"];
 
     // Six random numbers that add up to x
     function nodeLinks(x) {
@@ -34,7 +35,6 @@ let d8r = (function (d3) {
         }
         return {nodes: fxNodes, links: []};
     }
-
     const fixedNodes = makeFixedNodes(fixedNodeIDs);
 
     function getNode(thisID, fixedNodeIDs, outwardLinks, image = getRandomFace()) {
@@ -158,7 +158,8 @@ let d8r = (function (d3) {
         let allLinks = Object.values(nodesArray).reduce(
             (arr, obj) => [...arr, ...obj.links], []);
         // let dataC = nodesArray.reduce(joinNodesReducer);
-        return {nodes: fixedNodes.nodes.concat(allNodes),  links: allLinks};
+        let nodes = fixedNodes.nodes;
+        return {nodes: nodes.concat(allNodes),  links: allLinks};
     }
 
     // const joinNodesReducer = (acc, cur) => {
