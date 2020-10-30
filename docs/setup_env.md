@@ -80,7 +80,7 @@ Further information [here](https://ipython.readthedocs.io/en/stable/install/kern
 If you are using Anaconda Python distribution, it is possible to re-create the virtual (conda) environment using the export `.yml` (`YAML`) file:
 
 ```shell script
-conda env create -f corious_conda.yml
+conda env create -f curious_conda.yml
 ```
 
 This will create a new Conda environment named `thecurious` with all the 
