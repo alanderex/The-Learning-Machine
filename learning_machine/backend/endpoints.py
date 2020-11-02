@@ -78,3 +78,19 @@ async def annotate(annotation: Annotation):
     nodes = make_nodes(other_samples, updated_emotions, dataset.emotions)
     response = BackendResponse(nodes=nodes)
     return response.dict()
+
+
+async def discard_image(image_id: str):
+    dataset = get_dataset(DATASET_NAME)
+    machine = get_model(LEARNING_MACHINE_MODEL)
+    dataset.discard_sample(image_id)
+    new_sample = dataset.get_random_samples(k=1)
+    models_preds = machine.predict(samples=new_sample)
+    nodes = make_nodes(new_sample, models_preds, dataset.emotions)
+    response = BackendResponse(nodes=nodes)
+    return response.dict()
+
+
+async def serialise_on_shutdown():
+    dataset = get_dataset(DATASET_NAME)
+    dataset.serialise_session()
