@@ -155,7 +155,7 @@ let d8r = (function(d3){
     return nodeArray;
   }
 
-  function compileData(nodeArray){
+  function oldCompileData(nodeArray){
     nodeArray.forEach(x => {
       x.nodes[0].donut = x.links.map(y => y.value);
     });
@@ -166,6 +166,23 @@ let d8r = (function(d3){
 
   const joinNodesReducer = (acc, cur) => {
     return {nodes: acc.nodes.concat(cur.nodes),links: acc.links.concat(cur.links)};
+  }
+
+  function compileData(nodesArray) {
+      nodesArray.forEach(x => {
+          x.donut = x.links.map(y => y.value);
+      });
+      let allNodes = Object.values(nodesArray).map(n => ({
+          group: n.group,
+          id: n.id,
+          image: n.image,
+          donut: n.donut
+      }));
+      let allLinks = Object.values(nodesArray).reduce(
+          (arr, obj) => [...arr, ...obj.links], []);
+      // let dataC = nodesArray.reduce(joinNodesReducer);
+      let nodes = fixedNodes.nodes;
+      return {nodes: nodes.concat(allNodes),  links: allLinks};
   }
 
   function hexagon(n, cx, cy, gs){
