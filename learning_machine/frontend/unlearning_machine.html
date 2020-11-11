@@ -3,37 +3,41 @@
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+          crossorigin="anonymous">
 
     <title>Learning Machine</title>
 
     <style>
       .link {
-        stroke: #999;
-        /* stroke-opacity: 0.2; */
-        stroke-opacity: 0;
+           stroke: #999;
+           /* stroke-opacity: 0.2; */
+           stroke-opacity: 0;
       }
 
       .node circle {
-        stroke: #fff;
-        stroke-width: 7px;
-        fill: #EEE;
-        /* fill: #ee6c61; */
+          stroke: #fff;
+          stroke-width: 7px;
+          fill: #EEE;
+          /* fill: #ee6c61; */
       }
 
       .emoji-label {
-        font-family: sans-serif;
-        font-size: 14px;
-        fill: #888;
+          font-family: sans-serif;
+          font-size: 14px;
+          fill: #888;
       }
 
       #refresh-label {
-        font-family: sans-serif;
-        font-size: 14px;
-        fill: #888;
+          font-family: sans-serif;
+          font-size: 14px;
+          fill: #888;
       }
 
       /* #refresh {
@@ -41,8 +45,8 @@
       } */
 
       text {
-        font-family: sans-serif;
-        font-size: 10px;
+          font-family: sans-serif;
+          font-size: 10px;
       }
 
     </style>
@@ -62,11 +66,11 @@
     <script>
 
       // *** Set up plotting area ***
-      function color(d) { return d3.scaleOrdinal(d3.schemeCategory10)(d.group)}
+      //function color(d) { return d3.scaleOrdinal(d3.schemeCategory10)(d.group)}
 
       const svg = d3.select("svg"),
-      width = +svg.attr("width"),
-      height = +svg.attr("height");
+          width = +svg.attr("width"),
+          height = +svg.attr("height");
 
       // Set up a clipPath for the images
       svg.append("clipPath")
@@ -84,62 +88,66 @@
 
       // Transition
       const t = svg.transition()
-       .duration(1000);
+          .duration(1000);
 
       // Set up a colour palette for donut plots
       // let donutColor = d3.scaleOrdinal()
       //   .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
-      let colours = ["#E4324F","#F19C38","#F6CA45","#5FCE43","#5BC7FA","#6559A6"];
+      let colours = ["#E4324F", // happy
+                     "#F19C38", // sad
+                     "#F6CA45", // disgust
+                     "#5FCE43", // fear
+                     "#5BC7FA", // angry
+                     "#6559A6"];// surprise
 
       // Target circle radius
       let targetr = 55;
 
       // Target circles for the emoji areas
-      const hex = d8r.hexagonArray(cx,cy,gs);
-      for(let i = 0; i < 6; i++){
-        svg.append("circle")
-          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-          .attr("r",targetr)
-          .attr("fill", "#EEE")
-          .attr("cx", hex[i].x)
-          .attr("cy", hex[i].y)
-          .attr("id", d8r.fixedNodeIDs[i] + "_target")
-          .attr("stroke", colours[i])
-          .attr("stroke-width", 3);
+      const hex = d8r.hexagonArray(cx, cy, gs);
+      for (let i = 0; i < 6; i++) {
+          svg.append("circle")
+              .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+              .attr("r", targetr)
+              .attr("fill", "#EEE")
+              .attr("cx", hex[i].x)
+              .attr("cy", hex[i].y)
+              .attr("id", d8r.fixedNodeIDs[i] + "_target")
+              .attr("stroke", colours[i])
+              .attr("stroke-width", 3);
       }
       // Label the target emojis
-      for(let i = 0; i < 6; i++){
-        svg.append("text")
-          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-          .attr("class", "emoji-label")
-          .text( d8r.fixedNodeIDs[i] )
-          .attr("text-anchor", "middle")
-          .attr("x", hex[i].x)
-          .attr("y", hex[i].y+40)
-          .attr("pointer-events", "none");
+      for (let i = 0; i < 6; i++) {
+          svg.append("text")
+              .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+              .attr("class", "emoji-label")
+              .text(d8r.fixedNodeIDs[i])
+              .attr("text-anchor", "middle")
+              .attr("x", hex[i].x)
+              .attr("y", hex[i].y + 40)
+              .attr("pointer-events", "none");
       }
 
       // Refresh button
       svg.append("g")
-        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-        .attr("id","refresh")
-      .append("circle")
-        .attr("cx", hex[1].x + 2*targetr)
-        .attr("cy", hex[2].y)
-        .attr("fill", "#EEE")
-        .attr("r", targetr);
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("id", "refresh")
+        .append("circle")
+          .attr("cx", hex[1].x + 2 * targetr)
+          .attr("cy", hex[2].y)
+          .attr("fill", "#EEE")
+          .attr("r", targetr);
 
       svg.append("text")
-        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-        .attr("id", "refresh-label")
-        .attr("text-anchor", "middle")
-        .attr("x", hex[1].x + 2*targetr)
-        .attr("y", hex[2].y + 5)
-        .text("refresh")
-        .attr("pointer-events", "none");
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("id", "refresh-label")
+          .attr("text-anchor", "middle")
+          .attr("x", hex[1].x + 2 * targetr)
+          .attr("y", hex[2].y + 5)
+          .text("refresh")
+          .attr("pointer-events", "none");
 
-      console.log(colours);
 
       // *** End set up plotting area ***
 
@@ -169,10 +177,9 @@
       // Arcs for donut charts
       let arc = d3.arc().innerRadius(25).outerRadius(28);
       let pie = d3.pie()
-        .value(function(d) {
-          return d;
-        })
-       .sort(null);
+          .value(function (d) {
+              return d;
+          }).sort(null);
 
       function donuts(d) {
         let dataNode = d3.select(this);
@@ -273,20 +280,20 @@
       function drag(simulation) {
 
         function dragstarted(d) {
-          if (d.group===1) {return};
+          if (d.group === "target") {return};
           if (!d3.event.active) simulation.alphaTarget(0.3).restart();
           d.fx = d.x;
           d.fy = d.y;
         }
 
         function dragged(d) {
-          if (d.group===1) {return};
+          if (d.group=== "target") {return};
           d.fx = d3.event.x;
           d.fy = d3.event.y;
         }
 
         function dragended(d) {
-          if (d.group===1) {return};
+          if (d.group=== "target") {return};
           if (!d3.event.active) simulation.alphaTarget(0);
           for(let i = 0; i < 6; i++){
             if(d8r.dist(data.nodes[i].fx,data.nodes[i].fy,d.fx,d.fy)<targetr){
