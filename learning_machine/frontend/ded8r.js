@@ -1,7 +1,7 @@
 let d8r = (function(d3){
 
   // Fixed node IDs
-  const fixedNodeIDs = ["happy","sad","disgusted","fearful","angry","surprised"];
+  const fixedNodeIDs = ["happy","sad","disgust","fear","angry","surprise"];
 
   // Six random numbers that add up to x
   function nodeLinks(x) {
