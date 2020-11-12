@@ -2,6 +2,8 @@ let d8r = (function(d3){
 
   // Fixed node IDs
   const fixedNodeIDs = ["happy","sad","disgust","fear","angry","surprise"];
+  // Rearranged to match server response ordering for donuts
+  // const fixedNodeIDs = ["angry", "disgust", "fear", "happy", "sad", "surprise"];
 
   // Six random numbers that add up to x
   function nodeLinks(x) {
@@ -169,8 +171,17 @@ let d8r = (function(d3){
   }
 
   function compileData(nodesArray) {
+      // nodesArray.forEach(x => {
+      //     x.donut = x.links.map(y => y.value);
+      // });
       nodesArray.forEach(x => {
-          x.donut = x.links.map(y => y.value);
+          x.donut = [];
+          fixedNodeIDs.forEach((emo, i) => {
+              console.log(emo);
+              let targetEmo = x.links.find(element => ( element.target === emo ));
+              console.log(targetEmo);
+              x.donut[i] = targetEmo.value;
+          });
       });
       let allNodes = Object.values(nodesArray).map(n => ({
           group: n.group,
