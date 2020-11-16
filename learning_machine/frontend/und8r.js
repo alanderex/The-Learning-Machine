@@ -171,12 +171,11 @@ let d8r = (function(d3){
   }
 
   function compileData(nodeArray){
+    console.log(nodeArray);
     nodeArray.forEach(x => {
         x.nodes[0].donut = [];
         fixedNodeIDs.forEach((emo, i) => {
-            // console.log(emo);
             let targetEmo = x.links.find(element => ( element.target === emo | element.target.id === emo ));
-            // console.log(targetEmo);
             x.nodes[0].donut[i] = targetEmo.value;
         });
     });
