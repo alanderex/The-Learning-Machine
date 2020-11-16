@@ -62,7 +62,6 @@ let d8r = (function(d3){
     let links = [];
     for(let i = 0; i < 6; i++){
       let link = {
-        //id: uuidv4(), // not needed if the id is made from the source and target nodes
         source: thisID,
         target: fixedNodeIDs[i],
         value: outwardLinks[i]
@@ -131,33 +130,19 @@ let d8r = (function(d3){
   }
 
   function refreshNodeArray(nodeArray, serverResponse){
-    //console.log(nodeArray);
-    // console.log(serverResponse);
     let nodeArrayIds = nodeArray.map((x) => x.nodes[0].id);
 
     for(let i = 0; i < serverResponse.length; i++){
       if(nodeArrayIds.includes(serverResponse[i].nodes[0].id)){
         let uNode = nodeArray.find((x) => x.nodes[0].id === serverResponse[i].nodes[0].id);
         for(let j = 0; j < uNode.links.length; j++){
-          // console.log(serverResponse[i].links.find((x) => x.target === uNode.links[j].target.id).value);
-          // uNode.links[j].value = serverResponse[i][uNode.links[j].target.id];
           uNode.links[j].value = serverResponse[i].links.find((x) => x.target === uNode.links[j].target.id).value;
         }
       } else {
-        // let outwardLinks = [];
-        // fixedNodeIDs.forEach((x) => outwardLinks.push(serverResponse[i].links[x]));
-        // let nuNode = getNode(serverResponse[i].id, fixedNodeIDs, outwardLinks, serverResponse.image);
         let nuNode = serverResponse[i];
-        // console.log(serverResponse[i]);
-        // nuNode.donut = [];
-        // fixedNodeIDs.forEach((emo, i) => {
-        //     let targetEmo = nuNode.links.find(element => ( element.target === emo ));
-        //     nuNode.donut[i] = targetEmo.value;
-        // });
         nodeArray.push(nuNode);
       }
     }
-    console.log(nodeArray);
     return nodeArray;
   }
 
@@ -165,7 +150,6 @@ let d8r = (function(d3){
     for(let i = 0; i < nodeArray.length; i++){
       nodeArray[i] = updateNode(nodeArray[i],nodeLinks(1));
     }
-    //console.log(nodeArray);
     return nodeArray;
   }
 
@@ -207,46 +191,6 @@ let d8r = (function(d3){
   const joinNodesReducer = (acc, cur) => {
     return {nodes: acc.nodes.concat(cur.nodes),links: acc.links.concat(cur.links)};
   }
-
-  function altCompileData(nodesArray) {
-      // nodesArray.forEach(x => {
-      //     x.donut = x.links.map(y => y.value);
-      // });
-      nodesArray.forEach(x => {
-          x.donut = [];
-          fixedNodeIDs.forEach((emo, i) => {
-              console.log(emo);
-              let targetEmo = x.links.find(element => ( element.target === emo | element.target.id === emo ));
-              console.log(targetEmo);
-              x.donut[i] = targetEmo.value;
-          });
-      });
-      let allNodes = Object.values(nodesArray).map(n => ({
-          group: n.group,
-          id: n.id,
-          image: n.image,
-          donut: n.donut
-      }));
-      let allLinks = Object.values(nodesArray).reduce(
-          (arr, obj) => [...arr, ...obj.links], []);
-      // let dataC = nodesArray.reduce(joinNodesReducer);
-      let nodes = fixedNodes.nodes;
-      return {nodes: nodes.concat(allNodes),  links: allLinks};
-  }
-
-  // function recompileData(nodesArray) {
-  //     let allNodes = Object.values(nodesArray).map(n => ({
-  //         group: n.group,
-  //         id: n.id,
-  //         image: n.image,
-  //         donut: n.donut
-  //     }));
-  //     let allLinks = Object.values(nodesArray).reduce(
-  //         (arr, obj) => [...arr, ...obj.links], []);
-  //     // let dataC = nodesArray.reduce(joinNodesReducer);
-  //     let nodes = fixedNodes.nodes;
-  //     return {nodes: nodes.concat(allNodes),  links: allLinks};
-  // }
 
   function hexagon(n, cx, cy, gs){
     switch(n){
@@ -293,22 +237,10 @@ let d8r = (function(d3){
 
   return {
     fixedNodeIDs: fixedNodeIDs,
-    nodeLinks: nodeLinks,
-    uuidv4: uuidv4,
-    makeFixedNodes: makeFixedNodes,
     fixedNodes: fixedNodes,
     preprocess: preprocess,
-    getNode: getNode,
-    getNodeArray: getNodeArray,
-    toNodeArrayNode: toNodeArrayNode,
-    updateNode: updateNode,
-    updateNodeArray: updateNodeArray,
     refreshNodeArray: refreshNodeArray,
-    simpleUpdateNodeArray: simpleUpdateNodeArray,
     compileData: compileData,
-    // recompileData: recompileData,
-    joinNodesReducer: joinNodesReducer,
-    hexagon: hexagon,
     hexagonArray: hexagonArray,
     dist: dist
   };

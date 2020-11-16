@@ -25,7 +25,6 @@
           stroke: #fff;
           stroke-width: 7px;
           fill: #EEE;
-          /* fill: #ee6c61; */
       }
 
       .emoji-label {
@@ -39,10 +38,6 @@
           font-size: 14px;
           fill: #888;
       }
-
-      /* #refresh {
-        fill: #EEE;
-      } */
 
       text {
           font-family: sans-serif;
@@ -66,7 +61,6 @@
     <script>
 
       // *** Set up plotting area ***
-      //function color(d) { return d3.scaleOrdinal(d3.schemeCategory10)(d.group)}
 
       const svg = d3.select("svg"),
           width = +svg.attr("width"),
@@ -91,9 +85,6 @@
           .duration(1000);
 
       // Set up a colour palette for donut plots
-      // let donutColor = d3.scaleOrdinal()
-      //   .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-
       let colours = ["#E4324F", // happy
                      "#5BC7FA", // angry
                      "#F6CA45", // disgust
@@ -154,21 +145,13 @@
       fetch(`http://localhost:8000/faces/${numberOfFaces}`)
           .then(response => response.json())
           .then((json) => {
-              console.log(d8r.preprocess(json));
-              // let nodesArray = json.nodes;
               let nodesArray = d8r.preprocess(json);
               // Set up data
-              //let nodesArray = d8r.getNodeArray(numberOfFaces);
-              console.log(nodesArray);
               let data = d8r.compileData(nodesArray);
               for(let i = 0; i < 6; i++){
                 data.nodes[i].fx = hex[i].x
                 data.nodes[i].fy = hex[i].y
               }
-
-              console.log(nodesArray);
-
-              console.log(data);
 
               // Set up simulation
               let simulation = d3.forceSimulation(data.nodes)
@@ -191,10 +174,6 @@
               function donuts(d) {
                 let dataNode = d3.select(this);
 
-                console.log(dataNode);
-
-                console.log(pie(d.donut));
-
                 dataNode.selectAll(".arc")
                     .data(function(d){return pie(d.donut);})
                     .join(
@@ -203,7 +182,6 @@
                           .attr("class","arc")
                           .attr("d", arc)
                           .style("fill", function(d,i){return colours[i]});
-                          // .style("fill", d => donutColor(d.index));
                       },
                       update => update,
                       exit => exit.remove
@@ -211,9 +189,6 @@
               }
 
               restart();
-
-        // 6 6559A6, 3 F6CA45, 5 5BC7FA, 1 E4324F, 2 F19C38, 4 5FCE43
-
 
               // What happens when the simulation ticks
               function ticked() {
@@ -259,12 +234,10 @@
                         });
                       thisNode.filter(d => (d.group === "data"))
                         .each(donuts);
-                      // thisNode.append("path")
-                      //   .attr("d", )
+
                       thisNode.attr("opacity", 0)
                         .call(enter => enter.transition(t)
                         .attr("opacity", 1));
-                      // console.log(thisNode);
                       return thisNode;
                     },
                     update => update,
@@ -287,29 +260,28 @@
               function drag(simulation) {
 
                 function dragstarted(d) {
-                  if (d.group === "target") {return};
+                  if (d.group === "target") { return };
                   if (!d3.event.active) simulation.alphaTarget(0.3).restart();
                   d.fx = d.x;
                   d.fy = d.y;
                 }
 
                 function dragged(d) {
-                  if (d.group=== "target") {return};
+                  if (d.group === "target") { return };
                   d.fx = d3.event.x;
                   d.fy = d3.event.y;
                 }
 
                 function dragended(d) {
-                  if (d.group=== "target") {return};
+                  if (d.group=== "target") { return };
                   if (!d3.event.active) simulation.alphaTarget(0);
                   for(let i = 0; i < 6; i++){
-                    if(d8r.dist(data.nodes[i].fx,data.nodes[i].fy,d.fx,d.fy)<targetr){
+                    if(d8r.dist(data.nodes[i].fx,data.nodes[i].fy,d.fx,d.fy) < targetr){
                       // Send the label to the backend
-                      // serverCall(d.id, data.nodes[i].id);
                       sendToBackend(d.id, data.nodes[i].id);
                       // Make the target circle flash
-                      let target = d3.select("#" + data.nodes[i].id + "_target");
-                      target.transition(t).attr("fill","#CCC").transition(t).attr("fill","#EEE");
+                      let target = d3.select( "#" + data.nodes[i].id + "_target" );
+                      target.transition(t).attr( "fill","#CCC" ).transition(t).attr( "fill", "#EEE" );
                     }
                   }
                   d.fx = null;
@@ -331,7 +303,6 @@
                   .transition().duration(100)
                   .attr("fill","#EEE");
                 // Remove all current data nodes
-                console.log(data);
                 data.nodes.splice(6,data.nodes.length-1);
                 data.links = [];
                 // restart();
@@ -367,67 +338,27 @@
                 });
               });
 
-              function serverCall(imageId, emolabel){
-                  console.log(imageId, emolabel);
-                  // Remove the dragged element
-                  for(let i = 0; i < nodesArray.length; i++){
-                    if(nodesArray[i].nodes[0].id === imageId){
-                      nodesArray.splice(i, 1);
-                    }
-                  }
-                  // Check it's been removed
-                  //console.log(nodesArray.map(x => x.nodes[0].id));
-                  nodesArray = d8r.updateNodeArray(nodesArray, 1, 0);
-                  //console.log(nodesArray.map(x => x.nodes[0].id));
-                  data = d8r.compileData(nodesArray);
-                  //console.log(data);
-                  restart();
-              }
-
               function sendToBackend(imageId, emolabel){
-                  console.log(imageId, emolabel);
-                  console.log(nodesArray);
                   // Remove the dragged element
                   for(let i = 0; i < nodesArray.length; i++){
                     if(nodesArray[i].nodes[0].id === imageId){
                       nodesArray.splice(i, 1);
                     }
                   }
-
-                  // // Remove face immediately
-                  // console.log(data);
                   data = d8r.compileData(nodesArray);
-                  // console.log(data);
                   restart();
 
-                  console.log(nodesArray);
                   let callObject = {
-                    image_id: imageId,   // Could be any unique id you like
-                    label: emolabel, // or e.g. sad, disgusted
+                    image_id: imageId,
+                    label: emolabel,
                     new_nodes: 1, // Number of new nodes (in addition to current_nodes)
                     current_nodes: nodesArray.map(x => x.nodes[0].id)  // So the server knows which nodes to send updates for
                   };
-                  // console.log(callObject);
-                  // console.log(JSON.stringify(callObject));
 
-                  // Test object parsing
-                  // fetch('http://localhost:8080/dummy_json_response.json')
-                  // .then((response) => {
-                  //     return response.json();
-                  // })
-                  // .then((myJson) => {
-                  //   // console.log(myJson.nodes.map(d8r.toNodeArrayNode));
-                  //   console.log(nodesArray);
-                  //   console.log(myJson);
-                  //   // console.log(d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode).map(d => Object.create(d))));
-                  //   // console.log(d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode))); // May need to find and update existing objects if this doesn't work
-                  //
-                  //   // d8r.refreshNodeArray(nodesArray,myJson);
-                  // });
 
                   // Send the update to the server and receive the response
                   fetch("http://localhost:8000/faces/annotate", {
-                    method: 'POST', // or 'PUT'
+                    method: 'POST',
                     headers: {
                       "accept": "application/json",
                       "Content-Type": "application/json"
@@ -435,19 +366,8 @@
                     body: JSON.stringify(callObject)
                   }).then((response) => response.json())
                   .then((myJson) => {
-                    console.log(d8r.preprocess(myJson));
-                    // console.log('Success:', dat);
-                    // nodesArray = dat.nodes.map(d => Object.create(d));
-                    //console.log(nodesArray.map(x => x.nodes[0].id));
-
-                    // May need to find and update existing objects if this doesn't work
-                    //data = d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode));
-
-                    // like this
                     nodesArray = d8r.refreshNodeArray(nodesArray, d8r.preprocess(myJson));
-                    console.log(nodesArray);
                     data = d8r.compileData(nodesArray);
-                    console.log(nodesArray);
                     restart();
                   })
                   .catch((error) => {
