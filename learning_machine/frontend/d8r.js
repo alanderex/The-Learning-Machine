@@ -171,7 +171,6 @@ let d8r = (function(d3){
   }
 
   function compileData(nodeArray){
-    console.log(nodeArray);
     nodeArray.forEach(x => {
         x.nodes[0].donut = [];
         fixedNodeIDs.forEach((emo, i) => {
