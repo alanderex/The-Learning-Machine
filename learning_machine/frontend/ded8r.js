@@ -152,6 +152,7 @@ let d8r = (function(d3){
         nodeArray.push(getNode(uuidv4(),fixedNodeIDs,nodeLinks(1)));
       }
     }
+    //console.log(nodeArray);
     return nodeArray;
   }
 

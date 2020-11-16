@@ -72,6 +72,24 @@ let d8r = (function(d3){
     return {nodes: [node], links: links};
   }
 
+  // Preprocess server response
+  function preprocess(serverResponse){
+    let processed = [];
+    serverResponse.nodes.forEach( element => {
+      processed.push({
+        "nodes": [
+          {
+            "id": element.id,
+            "image": element.image,
+            "group": element.group
+          }
+        ],
+        "links": element.links
+      });
+    });
+    return processed;
+  }
+
   // Convert server response node into node array node
   function toNodeArrayNode(serverResponseNode){
     let linksArray = [];
@@ -113,22 +131,33 @@ let d8r = (function(d3){
   }
 
   function refreshNodeArray(nodeArray, serverResponse){
+    //console.log(nodeArray);
+    // console.log(serverResponse);
     let nodeArrayIds = nodeArray.map((x) => x.nodes[0].id);
 
     for(let i = 0; i < serverResponse.length; i++){
-      if(nodeArrayIds.includes(serverResponse[i].id)){
-        let uNode = nodeArray.find((x) => x.nodes[0].id === serverResponse[i].id);
+      if(nodeArrayIds.includes(serverResponse[i].nodes[0].id)){
+        let uNode = nodeArray.find((x) => x.nodes[0].id === serverResponse[i].nodes[0].id);
         for(let j = 0; j < uNode.links.length; j++){
-          uNode.links[j].value = serverResponse[i][uNode.links[j].target.id];
+          // console.log(serverResponse[i].links.find((x) => x.target === uNode.links[j].target.id).value);
+          // uNode.links[j].value = serverResponse[i][uNode.links[j].target.id];
+          uNode.links[j].value = serverResponse[i].links.find((x) => x.target === uNode.links[j].target.id).value;
         }
       } else {
-        let outwardLinks = [];
-        fixedNodeIDs.forEach((x) => outwardLinks.push(serverResponse[i].links[x]));
-        thisID, fixedNodeIDs, outwardLinks, image
-        let nuNode = getNode(serverResponse[i].id, fixedNodeIDs, outwardLinks, serverResponse.image);
+        // let outwardLinks = [];
+        // fixedNodeIDs.forEach((x) => outwardLinks.push(serverResponse[i].links[x]));
+        // let nuNode = getNode(serverResponse[i].id, fixedNodeIDs, outwardLinks, serverResponse.image);
+        let nuNode = serverResponse[i];
+        // console.log(serverResponse[i]);
+        // nuNode.donut = [];
+        // fixedNodeIDs.forEach((emo, i) => {
+        //     let targetEmo = nuNode.links.find(element => ( element.target === emo ));
+        //     nuNode.donut[i] = targetEmo.value;
+        // });
         nodeArray.push(nuNode);
       }
     }
+    console.log(nodeArray);
     return nodeArray;
   }
 
@@ -157,10 +186,19 @@ let d8r = (function(d3){
     return nodeArray;
   }
 
-  function oldCompileData(nodeArray){
+  function compileData(nodeArray){
     nodeArray.forEach(x => {
-      x.nodes[0].donut = x.links.map(y => y.value);
+        x.nodes[0].donut = [];
+        fixedNodeIDs.forEach((emo, i) => {
+            // console.log(emo);
+            let targetEmo = x.links.find(element => ( element.target === emo | element.target.id === emo ));
+            // console.log(targetEmo);
+            x.nodes[0].donut[i] = targetEmo.value;
+        });
     });
+    // nodeArray.forEach(x => {
+    //   x.nodes[0].donut = x.links.map(y => y.value);
+    // });
     let dataC = nodeArray.reduce(joinNodesReducer);
     dataC = {nodes: fixedNodes.nodes.concat(dataC.nodes), links: dataC.links};
     return dataC;
@@ -170,7 +208,7 @@ let d8r = (function(d3){
     return {nodes: acc.nodes.concat(cur.nodes),links: acc.links.concat(cur.links)};
   }
 
-  function compileData(nodesArray) {
+  function altCompileData(nodesArray) {
       // nodesArray.forEach(x => {
       //     x.donut = x.links.map(y => y.value);
       // });
@@ -178,7 +216,7 @@ let d8r = (function(d3){
           x.donut = [];
           fixedNodeIDs.forEach((emo, i) => {
               console.log(emo);
-              let targetEmo = x.links.find(element => ( element.target === emo ));
+              let targetEmo = x.links.find(element => ( element.target === emo | element.target.id === emo ));
               console.log(targetEmo);
               x.donut[i] = targetEmo.value;
           });
@@ -195,6 +233,20 @@ let d8r = (function(d3){
       let nodes = fixedNodes.nodes;
       return {nodes: nodes.concat(allNodes),  links: allLinks};
   }
+
+  // function recompileData(nodesArray) {
+  //     let allNodes = Object.values(nodesArray).map(n => ({
+  //         group: n.group,
+  //         id: n.id,
+  //         image: n.image,
+  //         donut: n.donut
+  //     }));
+  //     let allLinks = Object.values(nodesArray).reduce(
+  //         (arr, obj) => [...arr, ...obj.links], []);
+  //     // let dataC = nodesArray.reduce(joinNodesReducer);
+  //     let nodes = fixedNodes.nodes;
+  //     return {nodes: nodes.concat(allNodes),  links: allLinks};
+  // }
 
   function hexagon(n, cx, cy, gs){
     switch(n){
@@ -245,6 +297,7 @@ let d8r = (function(d3){
     uuidv4: uuidv4,
     makeFixedNodes: makeFixedNodes,
     fixedNodes: fixedNodes,
+    preprocess: preprocess,
     getNode: getNode,
     getNodeArray: getNodeArray,
     toNodeArrayNode: toNodeArrayNode,
@@ -253,6 +306,7 @@ let d8r = (function(d3){
     refreshNodeArray: refreshNodeArray,
     simpleUpdateNodeArray: simpleUpdateNodeArray,
     compileData: compileData,
+    // recompileData: recompileData,
     joinNodesReducer: joinNodesReducer,
     hexagon: hexagon,
     hexagonArray: hexagonArray,

@@ -154,7 +154,9 @@
       fetch(`http://localhost:8000/faces/${numberOfFaces}`)
           .then(response => response.json())
           .then((json) => {
-              let nodesArray = json.nodes;
+              console.log(d8r.preprocess(json));
+              // let nodesArray = json.nodes;
+              let nodesArray = d8r.preprocess(json);
               // Set up data
               //let nodesArray = d8r.getNodeArray(numberOfFaces);
               console.log(nodesArray);
@@ -304,7 +306,7 @@
                     if(d8r.dist(data.nodes[i].fx,data.nodes[i].fy,d.fx,d.fy)<targetr){
                       // Send the label to the backend
                       // serverCall(d.id, data.nodes[i].id);
-                      serverCallLive(d.id, data.nodes[i].id);
+                      sendToBackend(d.id, data.nodes[i].id);
                       // Make the target circle flash
                       let target = d3.select("#" + data.nodes[i].id + "_target");
                       target.transition(t).attr("fill","#CCC").transition(t).attr("fill","#EEE");
@@ -382,16 +384,25 @@
                   restart();
               }
 
-              function serverCallLive(imageId, emolabel){
+              function sendToBackend(imageId, emolabel){
                   console.log(imageId, emolabel);
+                  console.log(nodesArray);
                   // Remove the dragged element
                   for(let i = 0; i < nodesArray.length; i++){
                     if(nodesArray[i].nodes[0].id === imageId){
                       nodesArray.splice(i, 1);
                     }
                   }
+
+                  // // Remove face immediately
+                  // console.log(data);
+                  data = d8r.compileData(nodesArray);
+                  // console.log(data);
+                  restart();
+
+                  console.log(nodesArray);
                   let callObject = {
-                    id: imageId,   // Could be any unique id you like
+                    image_id: imageId,   // Could be any unique id you like
                     label: emolabel, // or e.g. sad, disgusted
                     new_nodes: 1, // Number of new nodes (in addition to current_nodes)
                     current_nodes: nodesArray.map(x => x.nodes[0].id)  // So the server knows which nodes to send updates for
@@ -415,15 +426,16 @@
                   // });
 
                   // Send the update to the server and receive the response
-                  fetch('https://localhost:8282/learning_machine_backend', { // Or whatever it's called
+                  fetch("http://localhost:8000/faces/annotate", {
                     method: 'POST', // or 'PUT'
                     headers: {
-                      'Content-Type': 'application/json',
+                      "accept": "application/json",
+                      "Content-Type": "application/json"
                     },
-                    body: JSON.stringify(callObject),
-                  })
-                  .then((response) => response.json())
+                    body: JSON.stringify(callObject)
+                  }).then((response) => response.json())
                   .then((myJson) => {
+                    console.log(d8r.preprocess(myJson));
                     // console.log('Success:', dat);
                     // nodesArray = dat.nodes.map(d => Object.create(d));
                     //console.log(nodesArray.map(x => x.nodes[0].id));
@@ -432,8 +444,10 @@
                     //data = d8r.compileData(myJson.nodes.map(d8r.toNodeArrayNode));
 
                     // like this
-                    nodesArray = d8r.refreshNodeArray(nodesArray, myJson.nodes);
+                    nodesArray = d8r.refreshNodeArray(nodesArray, d8r.preprocess(myJson));
+                    console.log(nodesArray);
                     data = d8r.compileData(nodesArray);
+                    console.log(nodesArray);
                     restart();
                   })
                   .catch((error) => {

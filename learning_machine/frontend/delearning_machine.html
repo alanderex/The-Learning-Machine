@@ -141,7 +141,7 @@
         data.nodes[i].fy = hex[i].y
       }
 
-      console.log(data);
+      // console.log(data);
 
       // Set up simulation
       let simulation = d3.forceSimulation(data.nodes)
@@ -317,9 +317,12 @@
               nodesArray.splice(i, 1);
             }
           }
+          console.log(nodesArray);
           // Check it's been removed
           //console.log(nodesArray.map(x => x.nodes[0].id));
           nodesArray = d8r.updateNodeArray(nodesArray, 1, 0);
+
+          console.log(nodesArray);
           //console.log(nodesArray.map(x => x.nodes[0].id));
           data = d8r.compileData(nodesArray);
           //console.log(data);
