@@ -237,7 +237,6 @@ let d8r = (function(d3){
 
   return {
     fixedNodeIDs: fixedNodeIDs,
-    fixedNodes: fixedNodes,
     preprocess: preprocess,
     refreshNodeArray: refreshNodeArray,
     compileData: compileData,
