@@ -163,6 +163,18 @@
           .attr("stroke", "#CCC")
           .attr("stroke-width", 3);
 
+      svg.append("g")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+        .append("circle")
+          // .attr("cx", hex[4].x - (4 * targetr))
+          // .attr("cy", hex[5].y + (2.5 * targetr))
+          .attr("cx", hex[4].x - (4 * targetr))
+          .attr("cy", hex[3].y - (2.5 * targetr))
+          .attr("fill", "#FFF")
+          .attr("r", 25)
+          .attr("stroke", "#FFF")
+          .attr("stroke-width", 7);
+
       svg.append("text")
           .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
           .attr("id", "neutral-label")
@@ -200,6 +212,18 @@
           .attr("r", targetr)
           .attr("stroke", "#CCC")
           .attr("stroke-width", 3);
+
+      svg.append("g")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+        .append("circle")
+          // .attr("cx", hex[4].x - (4 * targetr))
+          // .attr("cy", hex[5].y + (2.5 * targetr))
+          .attr("cx", hex[4].x - (4 * targetr))
+          .attr("cy", hex[3].y)
+          .attr("fill", "#FFF")
+          .attr("r", 25)
+          .attr("stroke", "#FFF")
+          .attr("stroke-width", 7);
 
       svg.append("text")
           .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
