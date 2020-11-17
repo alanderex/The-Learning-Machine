@@ -135,8 +135,18 @@
           .attr("id", "refresh-label")
           .attr("text-anchor", "middle")
           .attr("x", hex[1].x + 2 * targetr)
-          .attr("y", hex[2].y + 5)
+          .attr("y", hex[2].y + 40)
           .text("refresh")
+          .attr("pointer-events", "none");
+
+      svg.append("image")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("xlink:href", "refresh.svg")
+          .attr("id", "refresh-image")
+          .attr("x", hex[1].x + 2 * targetr -25)
+          .attr("y", hex[2].y -25)
+          .attr("height", 50)
+          .attr("width", 50)
           .attr("pointer-events", "none");
 
 
