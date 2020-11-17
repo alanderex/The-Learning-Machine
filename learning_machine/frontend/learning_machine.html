@@ -125,8 +125,10 @@
           .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
           .attr("id", "refresh")
         .append("circle")
-          .attr("cx", hex[1].x + 2 * targetr)
-          .attr("cy", hex[2].y)
+          // .attr("cx", hex[1].x + 2 * targetr)
+          // .attr("cy", hex[2].y)
+          .attr("cx", hex[4].x - (4 * targetr))
+          .attr("cy", hex[5].y)
           .attr("fill", "#EEE")
           .attr("r", targetr);
 
@@ -134,8 +136,10 @@
           .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
           .attr("id", "refresh-label")
           .attr("text-anchor", "middle")
-          .attr("x", hex[1].x + 2 * targetr)
-          .attr("y", hex[2].y + 40)
+          // .attr("x", hex[1].x + 2 * targetr)
+          // .attr("y", hex[2].y + 40)
+          .attr("x", hex[4].x - (4 * targetr))
+          .attr("y", hex[5].y + 40)
           .text("refresh")
           .attr("pointer-events", "none");
 
@@ -143,8 +147,83 @@
           .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
           .attr("xlink:href", "refresh.svg")
           .attr("id", "refresh-image")
-          .attr("x", hex[1].x + 2 * targetr -25)
-          .attr("y", hex[2].y -25)
+          // .attr("x", hex[1].x + 2 * targetr - 25)
+          // .attr("y", hex[2].y - 25)
+          .attr("x", hex[4].x - (4 * targetr) - 25)
+          .attr("y", hex[5].y -25)
+          .attr("height", 50)
+          .attr("width", 50)
+          .attr("pointer-events", "none");
+
+
+      // Neutral face button
+      svg.append("g")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("id", "neutral")
+        .append("circle")
+          // .attr("cx", hex[1].x + 2 * targetr)
+          // .attr("cy", hex[2].y)
+          .attr("cx", hex[4].x - (4 * targetr))
+          .attr("cy", hex[5].y + (2.5 * targetr))
+          .attr("fill", "#EEE")
+          .attr("r", targetr);
+
+      svg.append("text")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("id", "neutral-label")
+          .attr("class", "emoji-label")
+          .attr("text-anchor", "middle")
+          // .attr("x", hex[1].x + 2 * targetr)
+          // .attr("y", hex[2].y + 40)
+          .attr("x", hex[4].x - (4 * targetr))
+          .attr("y", hex[5].y + 40 + (2.5 * targetr))
+          .text("neutral")
+          .attr("pointer-events", "none");
+
+      svg.append("image")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("xlink:href", "neutral.svg")
+          .attr("id", "neutral-image")
+          // .attr("x", hex[1].x + 2 * targetr - 25)
+          // .attr("y", hex[2].y - 25)
+          .attr("x", hex[4].x - (4 * targetr) - 25)
+          .attr("y", hex[5].y -25 + (2.5 * targetr))
+          .attr("height", 50)
+          .attr("width", 50)
+          .attr("pointer-events", "none");
+
+      // Not a human button
+      svg.append("g")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("id", "not-human")
+        .append("circle")
+          // .attr("cx", hex[1].x + 2 * targetr)
+          // .attr("cy", hex[2].y)
+          .attr("cx", hex[4].x - (4 * targetr))
+          .attr("cy", hex[5].y + (5 * targetr))
+          .attr("fill", "#EEE")
+          .attr("r", targetr);
+
+      svg.append("text")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("id", "not-human-label")
+          .attr("class", "emoji-label")
+          .attr("text-anchor", "middle")
+          // .attr("x", hex[1].x + 2 * targetr)
+          // .attr("y", hex[2].y + 40)
+          .attr("x", hex[4].x - (4 * targetr))
+          .attr("y", hex[5].y + 40 + (5 * targetr))
+          .text("not human")
+          .attr("pointer-events", "none");
+
+      svg.append("image")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .attr("xlink:href", "robot.svg")
+          .attr("id", "not-human-image")
+          // .attr("x", hex[1].x + 2 * targetr - 25)
+          // .attr("y", hex[2].y - 25)
+          .attr("x", hex[4].x - (4 * targetr) - 25)
+          .attr("y", hex[5].y -25 + (5 * targetr))
           .attr("height", 50)
           .attr("width", 50)
           .attr("pointer-events", "none");
