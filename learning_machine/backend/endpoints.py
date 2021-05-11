@@ -16,8 +16,10 @@ def make_nodes(
     nodes = list()
     for sample, emotion in zip(samples, emotions):
         emotion_map = {c: p for c, p in zip(classes, emotion)}
-        emotion_map.pop("neutral")
         norm = sum(emotion_map.values())
+        # Pop Neutral emotion after having calculated weights
+        emotion_map.pop("neutral")
+
         emotion_map = {c: v / norm for c, v in emotion_map.items()}
         links = [
             EmotionLink(source=sample.uuid, value=prob, target=emotion)
@@ -68,12 +70,17 @@ async def get_face(image_id: str):
 async def annotate(annotation: Annotation):
     dataset = get_dataset(DATASET_NAME)
     machine = get_model(LEARNING_MACHINE_MODEL)
-    annotated_sample = dataset[annotation.image_id]
-    # TODO: this should go in the DB too!!
-    annotated_sample.emotion = dataset.emotion_index(annotation.label)
+    emotion = annotation.label
+    if emotion == "not-human":
+        dataset.discard_sample(annotation.image_id)
+    else:
+        annotated_sample = dataset[annotation.image_id]
+        # TODO: this should go in the DB too!!
+        annotated_sample.emotion = dataset.emotion_index(emotion)
+        machine.fit((annotated_sample,))
+
     other_samples = [dataset[nid] for nid in annotation.current_nodes]
     other_samples += dataset.get_random_samples(k=annotation.new_nodes)
-    machine.fit((annotated_sample,))
     updated_emotions = machine.predict(samples=other_samples)
     nodes = make_nodes(other_samples, updated_emotions, dataset.emotions)
     response = BackendResponse(nodes=nodes)
