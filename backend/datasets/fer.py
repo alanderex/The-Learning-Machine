@@ -82,7 +82,7 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 from torchvision.datasets import VisionDataset
-from torchvision.datasets.utils import download_and_extract_archive
+from torchvision.datasets.utils import download_url, extract_archive
 from enum import Enum
 from pathlib import Path
 from math import sqrt
@@ -233,6 +233,26 @@ class FER(VisionDataset):
     def extra_repr(self):
         return "Split: {}".format(self.split.value)
 
+    def _download_and_extract_archive(
+        self,
+        url: str,
+        download_root: str,
+        filename: Optional[str] = None,
+        md5: Optional[str] = None,
+    ):
+        download_root = os.path.expanduser(download_root)
+        extract_root = download_root
+        if not filename:
+            filename = os.path.basename(url)
+
+        from torchvision.datasets import utils
+
+        utils._get_redirect_url = lambda ulr, max_hops: url
+        download_url(url, download_root, filename, md5)
+        archive = os.path.join(download_root, filename)
+        print("Extracting {} to {}".format(archive, extract_root))
+        extract_archive(archive, extract_root, remove_finished=False)
+
     def download(self):
         """Download the FER data if it doesn't already exist in the processed folder"""
 
@@ -245,7 +265,7 @@ class FER(VisionDataset):
         # download files
         for url, md5 in self.resources:
             filename = url.rpartition("/")[-1].split("?")[0]
-            download_and_extract_archive(
+            self._download_and_extract_archive(
                 url, download_root=self.raw_folder, filename=filename, md5=md5
             )
 
