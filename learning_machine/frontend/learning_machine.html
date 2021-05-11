@@ -150,10 +150,12 @@
           .attr("pointer-events", "none");
 
       // Neutral face target
-      svg.append("g")
+      // svg.append("g")
+      //     .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          //.attr("id", "neutral")
+      svg.append("circle")
           .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
           .attr("id", "neutral")
-        .append("circle")
           // .attr("cx", hex[4].x - (4 * targetr))
           // .attr("cy", hex[5].y + (2.5 * targetr))
           .attr("cx", hex[4].x - (4 * targetr))
@@ -200,10 +202,12 @@
           .attr("pointer-events", "none");
 
       // Not a human target
-      svg.append("g")
+      // svg.append("g")
+      //     .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          //.attr("id", "not-human")
+      svg.append("circle")
           .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
           .attr("id", "not-human")
-        .append("circle")
           // .attr("cx", hex[4].x - (4 * targetr))
           // .attr("cy", hex[5].y + (5 * targetr))
           .attr("cx", hex[4].x - (4 * targetr))
@@ -393,6 +397,23 @@
                       let target = d3.select( "#" + data.nodes[i].id + "_target" );
                       target.transition(t).attr( "fill","#CCC" ).transition(t).attr( "fill", "#EEE" );
                     }
+                  }
+                  // Dropping on neutral and not human targets
+                  let neutral_target = d3.select("#neutral");
+                  // console.log(neutral_target.attr("id"));
+                  let not_human_target = d3.select("#not-human")
+                  // console.log(not_human_target);
+                  if(d8r.dist(neutral_target.attr("cx"),neutral_target.attr("cy"),d.fx,d.fy) < targetr){
+                    // Send the label to the backend
+                    sendToBackend(d.id, neutral_target.attr("id"));
+                    // Make the target circle flash
+                    neutral_target.transition(t).attr( "fill","#CCC" ).transition(t).attr( "fill", "#EEE" );
+                  }
+                  if(d8r.dist(not_human_target.attr("cx"),not_human_target.attr("cy"),d.fx,d.fy) < targetr){
+                    // Send the label to the backend
+                    sendToBackend(d.id, not_human_target.attr("id"));
+                    // Make the target circle flash
+                    not_human_target.transition(t).attr( "fill","#CCC" ).transition(t).attr( "fill", "#EEE" );
                   }
                   d.fx = null;
                   d.fy = null;
