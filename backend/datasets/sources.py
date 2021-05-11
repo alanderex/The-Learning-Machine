@@ -4,7 +4,7 @@ Specify Data sources used to proxy access to available Torch Datasets
 
 from dataclasses import dataclass
 from torch.utils.data import Dataset, ConcatDataset
-from datasets.fer import FER
+from .fer import FER
 from typing import Callable, Sequence, Union, Set
 from PIL.Image import Image as PILImage
 from random import sample
