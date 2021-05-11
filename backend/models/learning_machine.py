@@ -34,7 +34,7 @@ TORCH_DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class LearningMachine(ABC):
-    """"""
+    """ """
 
     CHECKPOINTS_FOLDER = BASE_FOLDER / "weights"
 
@@ -105,6 +105,12 @@ class LearningMachine(ABC):
 
     def _download_weights(self) -> NoReturn:
         # download weights files
+
+        # MONKEY Patch torchvision utils
+        from torchvision.datasets import utils
+
+        utils._get_redirect_url = lambda url, max_hops: url
+
         url, md5 = self.weights_urls
         filename = url.rpartition("/")[-1].split("?")[0]
         download_url(url, root=self.CHECKPOINTS_FOLDER, filename=filename, md5=md5)
@@ -161,7 +167,7 @@ class LearningMachine(ABC):
         return model_output.detach().numpy()
 
     def fit(self, samples: Sequence[Sample]) -> NoReturn:
-        """"""
+        """ """
         # convert the input sequence of Samples into a batch
         # of torch Tensor
         batch = default_collate(list(map(self.transform, iter(samples))))
