@@ -18,10 +18,14 @@ __pycache__/
 
 # FER local dataset
 FER/*
-learning_machine/*/FER/*
-/learning_machine/backend/datasets/FER/*
-/learning_machine/backend/models/weights/*
-/learning_machine/backend/data/dataset
+FER/*
+backend/datasets/FER/*
+backend/models/weights/*
+backend/data/dataset
+notebooks/FER/
+notebooks/fer2013
+notebooks/*.tar.gz
+
 
 # Python env (Codespaces)
 pythonenv3.8
