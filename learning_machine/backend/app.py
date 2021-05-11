@@ -31,7 +31,7 @@ faces = learning_machine_backend.get("/faces/{number_of_faces}/")(faces)
 get_emotion_face = learning_machine_backend.get("/faces/image/{image_id}")(get_face)
 annotate = learning_machine_backend.post("/faces/annotate/")(annotate)
 test_face = learning_machine_backend.get("/faces/test/{image_id}")(test_face)
-bin_image = learning_machine_backend.post("/faces/dispose/{image_id}")(discard_image)
+trash_image = learning_machine_backend.post("/faces/dispose/")(discard_image)
 serialise_on_shutdown = learning_machine_backend.on_event("shutdown")(
     serialise_on_shutdown
 )
