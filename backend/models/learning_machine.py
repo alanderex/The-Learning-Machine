@@ -20,10 +20,7 @@ from PIL.Image import Image as PILImage
 # Types
 ModelOutput = Union[Tensor, Tuple[Tensor, Tensor]]
 Prediction = NDArray[
-    (
-        Any,
-        7,
-    ),
+    Any,
     float32,
 ]
 TransformerType = Callable[[Union[Sequence[Callable], PILImage, Tensor]], Tensor]
@@ -116,10 +113,10 @@ class LearningMachine(ABC):
         download_url(url, root=self.CHECKPOINTS_FOLDER, filename=filename, md5=md5)
 
     def _calculate_loss(
-        self,
-        labels: Tensor,
-        model_output: ModelOutput,
-        input_batch: Optional[Tensor] = None,
+            self,
+            labels: Tensor,
+            model_output: ModelOutput,
+            input_batch: Optional[Tensor] = None,
     ) -> Tensor:
         loss = self.criterion(model_output, labels)
         return loss
@@ -131,7 +128,7 @@ class LearningMachine(ABC):
         return self._transformer(sample.image)
 
     def predict(
-        self, samples: Union[Sample, Sequence[Sample]], as_proba: bool = True
+            self, samples: Union[Sample, Sequence[Sample]], as_proba: bool = True
     ) -> Prediction:
         """
 
@@ -157,7 +154,7 @@ class LearningMachine(ABC):
             if not as_proba:
                 return outputs  # return logits
             probabilities = (outputs - outputs.min(axis=1, keepdims=True)) / (
-                outputs.max(axis=1, keepdims=True) - outputs.min(axis=1, keepdims=True)
+                    outputs.max(axis=1, keepdims=True) - outputs.min(axis=1, keepdims=True)
             )
             probabilities /= probabilities.sum(axis=1, keepdims=True)
             return probabilities

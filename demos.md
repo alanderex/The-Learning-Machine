@@ -17,6 +17,11 @@ The two components have to be executed both in order to make the demo working.
 (a) To run the `backend` it is just necessary to execute the `app.py` file,
 located in the main folder of the _backend_ component, i.e. `learning_machine/backend`:
 
+Add the PYTHONPATH
+```shell script
+export PYTHONPATH=`pwd`
+```
+
 ```shell script
 python app.py
 ```

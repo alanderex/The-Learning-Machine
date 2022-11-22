@@ -1,4 +1,4 @@
-name: thecurious
+name: the-learning-machine
 channels:
   - pytorch
   - conda-forge
